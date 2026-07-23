@@ -2927,6 +2927,8 @@ ul {
 .learning-card ul { display: grid; gap: 8px; margin-top: 22px; }
 .learning-card li { position: relative; padding-left: 16px; color: var(--muted-strong); font-size: 0.72rem; }
 .learning-card li::before { position: absolute; top: 0.48em; left: 0; width: 5px; height: 5px; content: ""; background: var(--accent); border-radius: 50%; }
+.exam-progress strong { color: var(--text); }
+.learning-card > .exam-knowledge { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted-strong); }
 .writing-section { background: var(--bg-elevated); }
 .writing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .note-card { padding: 32px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }

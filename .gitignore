@@ -1,0 +1,13 @@
+# Local tooling and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Never publish environment variables or credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*

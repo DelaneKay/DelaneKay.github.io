@@ -2894,7 +2894,7 @@ ul {
   color: var(--cyan);
   transform: translate(3px, -3px);
 }
-.hero-proof-summary { max-width: 690px; margin-top: -8px; color: var(--muted-strong); font-size: 0.82rem; line-height: 1.65; }
+.hero-proof-summary { max-width: 690px; margin-top: 18px; color: var(--muted-strong); font-size: 0.82rem; line-height: 1.65; }
 .profile-snapshot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 30px 0; overflow: hidden; background: var(--line); border: 1px solid var(--line); border-radius: 14px; }
 .profile-snapshot div { display: grid; gap: 7px; padding: 18px; background: var(--surface-solid); }
 .profile-snapshot dt { color: var(--accent); font-family: ui-monospace, "Cascadia Code", monospace; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }

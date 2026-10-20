@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#07111f" />
     <link rel="canonical" href="https://delanekay.github.io/meridian/" />
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=1" />
     <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1" />
     <meta name="description" content="My Project 01A journey investigating and hardening a fictional reporting server in an isolated two-VM VirtualBox lab." />
     <meta property="og:title" content="Meridian Linux Hardening | Kudakwashe Delan Sibanda" />
@@ -20,7 +19,8 @@
       .story-nav { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(18px); }
       .story-nav-inner { width: var(--story-width); min-height: 72px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
       .story-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .02em; }
-      .story-brand-mark { display: grid; width: 36px; aspect-ratio: 1; place-items: center; border-radius: 10px 3px 10px 3px; color: #07111f; background: var(--accent); font: 900 .75rem ui-monospace, monospace; }
+      .story-brand-mark { display: grid; width: 36px; aspect-ratio: 1; place-items: center; overflow: hidden; border-radius: 0; background: #07111f; }
+      .story-brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
       .story-nav-links { display: flex; align-items: center; gap: 18px; color: var(--muted-strong); font-size: .9rem; }
       .story-nav-links a:hover { color: var(--accent); }
       .story-wrap { width: var(--story-width); margin: auto; }
@@ -151,7 +151,7 @@
     <header class="story-nav">
       <div class="story-nav-inner">
         <a class="story-brand" href="/#projects" aria-label="Back to Kudakwashe's portfolio">
-          <span class="story-brand-mark">KD</span>
+          <span class="story-brand-mark"><img src="/assets/favicon.png?v=1" alt="" /></span>
           <span>REACTIVE LINUX HARDENING / 01A</span>
         </a>
         <nav class="story-nav-links" aria-label="Walkthrough sections">

@@ -385,15 +385,19 @@ const credentialLinks = new Map([
     "MTA: Introduction to Programming Using Python",
     "https://www.youracclaim.com/badges/e4cf5c51-f6b5-4219-9526-df4b2a9cc87a",
   ],
+  [
+    "Ultimate AWS Certified Security Specialty (SCS-C03) Preparation",
+    "https://www.udemy.com/certificate/UC-ad1cd0ec-5bbb-4c31-8461-14282031aa8a/",
+  ],
 ]);
 
 const credentialGrid = document.querySelector(".credential-grid");
 if (credentialGrid) {
   const originalCards = [...credentialGrid.querySelectorAll(".credential-card")];
-  const awsCard = originalCards.find(
-    (card) => card.querySelector("h3")?.textContent.trim() === "Solutions Architect - Associate",
+  const featuredCard = originalCards.find(
+    (card) => card.querySelector("h3")?.textContent.trim() === "Ultimate AWS Certified Security Specialty (SCS-C03) Preparation",
   );
-  if (awsCard) credentialGrid.prepend(awsCard);
+  if (featuredCard) credentialGrid.prepend(featuredCard);
 
   [...credentialGrid.querySelectorAll(".credential-card")].forEach((card, index) => {
     const title = card.querySelector("h3")?.textContent.trim();

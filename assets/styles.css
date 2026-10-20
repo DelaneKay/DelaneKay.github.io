@@ -230,7 +230,15 @@ ul {
   letter-spacing: -0.06em;
   background: var(--accent);
   border-radius: 12px 3px 12px 3px;
-  box-shadow: 0 0 28px rgba(255, 173, 50, 0.22);
+  overflow: hidden;
+  background: #07111f;
+}
+
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .brand-copy {

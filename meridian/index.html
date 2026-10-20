@@ -111,6 +111,9 @@
           <a href="#remediation">Remediation</a>
           <a href="#proof">Proof</a>
           <a class="story-home" href="/#projects">Portfolio ↗</a>
+          <button class="icon-button theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme">
+            <span class="theme-icon" aria-hidden="true">◐</span>
+          </button>
         </nav>
       </div>
     </header>
@@ -377,5 +380,31 @@ sudo ./lynis audit system --quick</code></pre>
         &nbsp;·&nbsp; <a href="/#projects">Back to portfolio ↑</a>
       </span>
     </footer>
+    <script>
+      const themeRoot = document.documentElement;
+      const themeButton = document.querySelector(".theme-toggle");
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+
+      function applyTheme(theme) {
+        themeRoot.dataset.theme = theme;
+        themeButton.setAttribute(
+          "aria-label",
+          theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
+        );
+        themeColor.setAttribute("content", theme === "dark" ? "#07111f" : "#f1f5f8");
+      }
+
+      const savedTheme = localStorage.getItem("portfolio-theme");
+      const systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
+      applyTheme(savedTheme || systemTheme);
+
+      themeButton.addEventListener("click", () => {
+        const nextTheme = themeRoot.dataset.theme === "dark" ? "light" : "dark";
+        applyTheme(nextTheme);
+        localStorage.setItem("portfolio-theme", nextTheme);
+      });
+    </script>
   </body>
 </html>

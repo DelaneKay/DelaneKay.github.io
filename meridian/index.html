@@ -10,7 +10,7 @@
     <meta property="og:description" content="An existing Ubuntu server, an unknown fault, and an evidence-led DevSecOps hardening journey." />
     <meta property="og:image" content="https://delanekay.github.io/assets/meridian-hardening.png" />
     <title>Meridian Linux Hardening | Kudakwashe Delan Sibanda</title>
-    <link rel="stylesheet" href="../assets/styles.css?v=20261020-2" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261020-3" />
     <style>
       :root { --story-width: min(1120px, calc(100vw - 44px)); }
       html { scroll-padding-top: 92px; }
@@ -121,7 +121,27 @@
         .story-step { grid-template-columns: 42px 1fr; gap: 12px; }
         .story-step::before { width: 36px; height: 36px; }
       }
-    </style>
+    
+      /* Use the accent only for Meridian cards in multi-column sections. */
+      @media (min-width: 601px) {
+        .story-summary > article,
+        .story-grid-two > .story-panel,
+        .story-proof > a,
+        .story-principles > article { position: relative; }
+        .story-summary > article::before,
+        .story-grid-two > .story-panel::before,
+        .story-proof > a::before,
+        .story-principles > article::before {
+          position: absolute;
+          z-index: 2;
+          inset: 0 auto 0 0;
+          width: 3px;
+          content: "";
+          background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 36%, transparent) 54%, transparent 100%);
+          pointer-events: none;
+        }
+      }
+</style>
   </head>
   <body>
     <header class="story-nav">

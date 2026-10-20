@@ -46,6 +46,8 @@
       .story-prose strong { color: var(--text); }
       .story-grid-two { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
       .story-panel { padding: clamp(20px, 3vw, 30px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+      .story-panel { min-width: 0; }
+      .story-panel code { overflow-wrap: anywhere; }
       .story-panel p { color: var(--muted-strong); font-size: 1rem; line-height: 1.75; }
       .story-panel p + p { margin-top: 12px; }
       .story-chip-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }

@@ -60,6 +60,7 @@ html[data-theme="light"] {
 }
 
 html {
+  font-size: 106.25%;
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-height) + 24px);
 }

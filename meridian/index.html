@@ -90,7 +90,8 @@
         .story-hero-art { max-width: 660px; }
         .story-section-head { grid-template-columns: 1fr; gap: 12px; }
         .story-principles { grid-template-columns: repeat(2,1fr); }
-        .story-nav-links { gap: 12px; font-size: .8rem; }
+         .story-nav-inner { flex-wrap: wrap; padding: 10px 0; }
+        .story-nav-links { flex-wrap: wrap; justify-content: flex-end; gap: 10px; font-size: .8rem; }
       }
       @media (max-width: 600px) {
         :root { --story-width: calc(100vw - 30px); }
@@ -415,7 +416,7 @@ sudo sha256sum /var/log/lynis.log /root/mds-audit-baseline/lynis.log /var/log/ly
               privileged changes. I kept the work in separate files so each control area could be reviewed
               and rerun independently.
             </p>
-            <p>I first checked YAML syntax, SSH reachability, and privilege escalation. Syntax checking validates the playbook structure without changing the server; the ping module checks that Ansible can connect and run remotely; the final check confirms the become path before privileged tasks.</p>
+            <p>I first checked YAML syntax, SSH reachability, and privilege escalation. Syntax checking validates the playbook structure without changing the server; Ansible's ping module checks the Ansible connection and remote Python availability (it is not an ICMP ping); the final check confirms the become path before privileged tasks.</p>
           </div>
 
           <div class="story-code-label"><span>Pre-flight checks from the admin VM</span><span>Before remediation</span></div>

@@ -2967,6 +2967,7 @@ ul {
 
 
 /* Left-edge accent for cards on the Meridian project page. */
+/* Matching accent for the main-page field-note cards. */
 :where(
   .story-summary article,
   .story-panel,
@@ -2999,3 +3000,4 @@ ul {
   );
   pointer-events: none;
 }
+\n.note-card::before {\n  position: absolute;\n  z-index: 2;\n  inset: 0 auto 0 0;\n  width: 3px;\n  content: "";\n  background: linear-gradient(\n    180deg,\n    var(--accent) 0%,\n    color-mix(in srgb, var(--accent) 36%, transparent) 54%,\n    transparent 100%\n  );\n  pointer-events: none;\n}\n

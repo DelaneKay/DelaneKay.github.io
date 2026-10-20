@@ -3071,3 +3071,47 @@ ul {
   .roadmap-phase-heading { align-items: flex-start; flex-direction: column; gap: 5px; }
   .roadmap-phase + .roadmap-phase { margin-top: 38px; }
 }
+
+
+/* Concept artwork for the 11-project roadmap. Tiles share one cached sprite sheet. */
+.roadmap-project-art {
+  position: relative;
+  display: grid;
+  height: 230px;
+  overflow: hidden;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--cyan) 10%, transparent), transparent 34%),
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px),
+    var(--bg-soft);
+  background-size: auto, 28px 28px, 28px 28px, auto;
+  border-bottom: 1px solid var(--line);
+}
+.roadmap-project-art::before {
+  width: min(220px, 52%);
+  aspect-ratio: 1;
+  content: "";
+  background-image: url("project-roadmap-art.png?v=20261020-1");
+  background-repeat: no-repeat;
+  background-size: 406% 304.5%;
+  background-position: var(--roadmap-art-x) var(--roadmap-art-y);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22);
+}
+.roadmap-art-tile-01 { --roadmap-art-x: 0%; --roadmap-art-y: 0%; }
+.roadmap-art-tile-02 { --roadmap-art-x: 33.333%; --roadmap-art-y: 0%; }
+.roadmap-art-tile-03 { --roadmap-art-x: 66.667%; --roadmap-art-y: 0%; }
+.roadmap-art-tile-04 { --roadmap-art-x: 100%; --roadmap-art-y: 0%; }
+.roadmap-art-tile-05 { --roadmap-art-x: 0%; --roadmap-art-y: 50%; }
+.roadmap-art-tile-06 { --roadmap-art-x: 33.333%; --roadmap-art-y: 50%; }
+.roadmap-art-tile-07 { --roadmap-art-x: 66.667%; --roadmap-art-y: 50%; }
+.roadmap-art-tile-08 { --roadmap-art-x: 100%; --roadmap-art-y: 50%; }
+.roadmap-art-tile-09 { --roadmap-art-x: 0%; --roadmap-art-y: 100%; }
+.roadmap-art-tile-10 { --roadmap-art-x: 33.333%; --roadmap-art-y: 100%; }
+.roadmap-art-tile-11 { --roadmap-art-x: 66.667%; --roadmap-art-y: 100%; }
+
+@media (max-width: 580px) {
+  .roadmap-project-art { height: 200px; }
+  .roadmap-project-art::before { width: min(190px, 56%); }
+}

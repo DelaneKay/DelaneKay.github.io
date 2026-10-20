@@ -34,6 +34,9 @@
     <link rel="stylesheet" href="assets/styles.css" />
     <style>
       body *, body *::before, body *::after { border-radius: 0 !important; }
+      .project-card[data-card-clickable="true"] { cursor: pointer; }
+      .project-card[data-card-clickable="true"]:hover { border-color: var(--accent); }
+      .project-card[data-card-clickable="true"]:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
     </style>
     <script src="assets/script.js" defer></script>
     <title>Kudakwashe Delan Sibanda | AWS Cloud Security Engineer</title>
@@ -1155,5 +1158,40 @@
         filters and project briefs require JavaScript.
       </div>
     </noscript>
+    <script>
+      document.querySelectorAll(".project-card").forEach((card) => {
+        const walkthrough = card.querySelector('a[href="/meridian/"]');
+        const buildBrief = card.querySelector(".project-open[data-project]");
+        const title = card.querySelector("h3")?.textContent.trim();
+        if (!walkthrough && !buildBrief) return;
+
+        card.dataset.cardClickable = "true";
+        card.tabIndex = 0;
+        card.setAttribute("role", walkthrough ? "link" : "button");
+        card.setAttribute(
+          "aria-label",
+          walkthrough ? \`Open the \${title} project walkthrough\` : \`Open the \${title} build brief\`,
+        );
+
+        const activateCard = () => {
+          if (walkthrough) {
+            window.location.href = walkthrough.href;
+          } else {
+            buildBrief.click();
+          }
+        };
+
+        card.addEventListener("click", (event) => {
+          if (event.target.closest("a, button")) return;
+          activateCard();
+        });
+
+        card.addEventListener("keydown", (event) => {
+          if (event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
+          event.preventDefault();
+          activateCard();
+        });
+      });
+    </script>
   </body>
 </html>

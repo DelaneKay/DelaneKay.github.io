@@ -31,7 +31,7 @@
     <link rel="canonical" href="https://delanekay.github.io/" />
     <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1" />
     <link rel="manifest" href="site.webmanifest" />
-    <link rel="stylesheet" href="assets/styles.css?v=20261020-3" />
+    <link rel="stylesheet" href="assets/styles.css?v=20261020-4" />
     <style>
       body *, body *::before, body *::after { border-radius: 0 !important; }
       .project-card[data-card-clickable="true"] { cursor: pointer; }
@@ -449,10 +449,10 @@
               <h2 id="projects-title">Depth over breadth.<br /><span>Evidence over claims.</span></h2>
             </div>
             <div class="project-disclosure">
-              <strong>One completed case study. More builds in progress.</strong>
+              <strong>Project 01a is complete; the rest of the 11-project roadmap is planned.</strong>
               <p>
-                Project 01a documents a completed Linux hardening investigation. The
-                AWS security projects below remain planned builds and are labelled as such.
+                Project 01a is the completed local lab for Project 1. Its AWS hardening extension and
+                Projects 2–11 are planned. Each phase grows from local testing into an AWS implementation.
               </p>
             </div>
           </div>
@@ -485,190 +485,179 @@
             </div>
           </div>
 
-          <div class="project-toolbar reveal">
-            <div class="filter-group" role="group" aria-label="Filter project roadmap">
-              <button class="filter-button is-active" type="button" data-filter="all">All</button>
-              <button class="filter-button" type="button" data-filter="foundation">
-                Foundations
-              </button>
-              <button class="filter-button" type="button" data-filter="detection">
-                Detection
-              </button>
-              <button class="filter-button" type="button" data-filter="devsecops">
-                DevSecOps
-              </button>
+          <div class="roadmap-intro reveal">
+            <p class="section-index">LOCAL LAB → AWS LAB → SECURITY AUTOMATION → PRACTICAL ASSESSMENT</p>
+            <p>This is my 11-project DevSecOps learning path for the fictional Meridian Digital Services. Each project builds practical security skills locally, then applies them to AWS and produces evidence for the portfolio.</p>
+          </div>
+
+          <section class="roadmap-phase" aria-labelledby="roadmap-phase-1">
+            <div class="roadmap-phase-heading">
+              <p class="section-index">PHASE 1</p>
+              <h3 id="roadmap-phase-1">Security foundations and secure CI/CD</h3>
             </div>
-            <p><span class="status-dot" aria-hidden="true"></span> Portfolio roadmap / 2026</p>
-          </div>
-
-          <div class="project-grid" id="project-grid">
-            <article class="project-card reveal" data-category="foundation">
-              <div class="project-card-top">
-                <span class="project-status">PROJECT 01A &middot; COMPLETE</span>
-                <span>01A / 11</span>
-              </div>
-              <div class="project-visual visual-meridian">
-                <img
-                  src="assets/meridian-hardening.png"
-                  alt="Portfolio artwork showing a workstation, server, and protected reporting system"
-                  width="1678"
-                  height="945"
-                  loading="lazy"
-                />
-              </div>
-              <div class="project-card-body">
-                <p class="project-type">PROJECT 01A / REACTIVE LINUX HARDENING</p>
-                <h3>Meridian Reporting Server</h3>
-                <p>
-                  I investigated an existing Ubuntu reporting server in a two-VM VirtualBox
-                  lab, then used Ansible and systemd to tighten service identity and data access.
-                  Checks confirmed the worker's required access, ordinary-admin denial, and an
-                  idempotent rerun.
-                </p>
-                <ul class="tag-list">
-                  <li>Linux</li>
-                  <li>Lynis</li>
-                  <li>Ansible</li>
-                  <li>systemd</li>
-                  <li>VirtualBox</li>
-                </ul>
-                <a
-                  class="project-open"
-                  href="https://github.com/DelaneKay/project-01a-meridian-linux-hardening"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  View project repository <span aria-hidden="true">↗</span>
-                </a>
-                <a
-                  class="project-open"
-                  href="/meridian/"
-                >
-                  Read my case study walkthrough <span aria-hidden="true">↗</span>
-                </a>
-              </div>
-            </article>
-
-            <article class="project-card reveal" data-category="foundation">
-              <div class="project-card-top">
-                <span class="project-status">BUILD 01 &middot; PLANNED</span>
-                <span>01</span>
-              </div>
-              <div class="project-visual visual-landing-zone" aria-hidden="true">
-                <span class="visual-label">ORG ROOT</span>
-                <i></i><i></i><i></i>
-                <b>SECURITY OU</b>
-              </div>
-              <div class="project-card-body">
-                <p class="project-type">FOUNDATION / GOVERNANCE</p>
-                <h3>Secure AWS Landing Zone</h3>
-                <p>
-                  A multi-account security baseline with centralized logging,
-                  organization guardrails, delegated security services, and evidence.
-                </p>
-                <ul class="tag-list">
-                  <li>Organizations</li>
-                  <li>Control Tower</li>
-                  <li>CloudTrail</li>
-                  <li>Config</li>
-                </ul>
-                <button class="project-open" type="button" data-project="landing-zone">
-                  Open build brief <span aria-hidden="true">↗</span>
-                </button>
-              </div>
-            </article>
-
-            <article class="project-card reveal" data-category="detection" data-delay="80">
-              <div class="project-card-top">
-                <span class="project-status">BUILD 02 &middot; QUEUED</span>
-                <span>02</span>
-              </div>
-              <div class="project-visual visual-detection" aria-hidden="true">
-                <div class="radar">
-                  <span></span>
-                  <i></i>
+            <div class="project-grid roadmap-grid">
+              <article class="project-card roadmap-card reveal">
+                <div class="project-card-top"><span class="project-status">PROJECT 01 · LOCAL 01A COMPLETE · AWS PLANNED</span><span>01 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">LINUX / HOST HARDENING</p>
+                  <h3>Linux Server Hardening</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Harden Ubuntu, SSH, permissions, firewalls, and audit logging. Project 01a is my completed reactive investigation of the existing Meridian server in a two-VM VirtualBox lab.</p></div>
+                    <div><h4>AWS implementation</h4><p>Planned proactive hardening of a new EC2 server, automated baseline configuration, and audit of administrative access.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Linux, Bash, Ansible, Lynis, OpenSCAP, auditd, UFW, Terraform, EC2, SSM</p></div>
+                  <div class="roadmap-links"><a href="/meridian/">Read Project 01a case study ↗</a><a href="https://github.com/DelaneKay/project-01a-meridian-linux-hardening" target="_blank" rel="noreferrer">View its repository ↗</a></div>
                 </div>
-                <b>FINDING / ENRICH / RESPOND</b>
-              </div>
-              <div class="project-card-body">
-                <p class="project-type">DETECTION / AUTOMATION</p>
-                <h3>Threat Detection Pipeline</h3>
-                <p>
-                  GuardDuty findings enriched and routed through an event-driven
-                  workflow, with automated containment for high-confidence scenarios.
-                </p>
-                <ul class="tag-list">
-                  <li>GuardDuty</li>
-                  <li>EventBridge</li>
-                  <li>Lambda</li>
-                  <li>SNS</li>
-                </ul>
-                <button class="project-open" type="button" data-project="detection-pipeline">
-                  Open build brief <span aria-hidden="true">↗</span>
-                </button>
-              </div>
-            </article>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="60">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>02 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">APPLICATION / API SECURITY</p>
+                  <h3>Application and API Security</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Test Juice Shop and Python APIs, investigate OWASP vulnerabilities, run SAST and DAST, and remediate findings.</p></div>
+                    <div><h4>AWS implementation</h4><p>Deploy isolated applications on ECS or EC2 and assess application and network security.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>SonarQube, Snyk Code, Semgrep, OWASP ZAP, Burp Suite, Bruno or Postman, pytest, Docker, AWS WAF</p></div>
+                </div>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="120">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>03 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">SECURE DELIVERY / CI/CD</p>
+                  <h3>Enterprise Secure CI/CD Pipeline</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Automate SAST, DAST, SCA, secrets scanning, security gates, and artifact signing.</p></div>
+                    <div><h4>AWS implementation</h4><p>Use GitHub Actions with AWS OIDC, ECR, and ECS for a secure deployment workflow.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>GitHub Actions, SonarQube, Snyk, Semgrep, ZAP, Gitleaks, Trivy, Hadolint, Sigstore/Cosign, OPA/Conftest</p></div>
+                </div>
+              </article>
+            </div>
+          </section>
 
-            <article class="project-card reveal" data-category="foundation" data-delay="160">
-              <div class="project-card-top">
-                <span class="project-status">BUILD 03 &middot; QUEUED</span>
-                <span>03</span>
-              </div>
-              <div class="project-visual visual-iam" aria-hidden="true">
-                <div class="iam-key">ALLOW</div>
-                <span>CONTEXT</span>
-                <span>RESOURCE</span>
-                <span>ACTION</span>
-                <b>LEAST PRIVILEGE</b>
-              </div>
-              <div class="project-card-body">
-                <p class="project-type">IDENTITY / AUTHORIZATION</p>
-                <h3>IAM Least-Privilege Lab</h3>
-                <p>
-                  A practical identity design showing federation, role-based access,
-                  permission boundaries, policy conditions, and access analysis.
-                </p>
-                <ul class="tag-list">
-                  <li>IAM</li>
-                  <li>Access Analyzer</li>
-                  <li>SCPs</li>
-                  <li>CloudTrail</li>
-                </ul>
-                <button class="project-open" type="button" data-project="iam-lab">
-                  Open build brief <span aria-hidden="true">↗</span>
-                </button>
-              </div>
-            </article>
+          <section class="roadmap-phase" aria-labelledby="roadmap-phase-2">
+            <div class="roadmap-phase-heading">
+              <p class="section-index">PHASE 2</p>
+              <h3 id="roadmap-phase-2">Supply chain, vulnerability management, and Kubernetes</h3>
+            </div>
+            <div class="project-grid roadmap-grid">
+              <article class="project-card roadmap-card reveal">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>04 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">ARTIFACT INTEGRITY / PROVENANCE</p>
+                  <h3>Software Supply Chain Security</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Generate SBOMs, sign artifacts, implement keyless signing, verify identities, and document provenance.</p></div>
+                    <div><h4>AWS implementation</h4><p>Publish signed images to ECR and require artifact verification before deployment.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Sigstore, Cosign, Fulcio, Rekor, Syft, Snyk Open Source, Dependency-Check, Trivy, GitHub OIDC, in-toto, SLSA</p></div>
+                </div>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="60">
+                <div class="project-card-top"><span class="project-status">PLANNED · QUALYS VMDR INCLUDED</span><span>05 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">FINDINGS / REMEDIATION</p>
+                  <h3>Enterprise Vulnerability Management and Remediation</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Assess Linux assets with Qualys VMDR, import scanner findings into DefectDojo, prioritize risk, and track remediation.</p></div>
+                    <div><h4>AWS implementation</h4><p>Assess EC2 with Qualys where supported; collect Inspector and Security Hub findings with Boto3, report, and verify fixes.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Qualys VMDR, DefectDojo, Snyk, SonarQube, Trivy, Semgrep, Python, Boto3, AWS Inspector, Security Hub, CVSS, EPSS, CISA KEV</p></div>
+                </div>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="120">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>06 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">CONTAINERS / KUBERNETES</p>
+                  <h3>Docker and Kubernetes Security</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Harden Docker images, configure Kubernetes RBAC and network policies, verify signed-image admission, and detect runtime threats.</p></div>
+                    <div><h4>AWS implementation</h4><p>Secure ECS and EKS workloads with policy enforcement and runtime monitoring.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Docker, Kubernetes, kind, Helm, Kyverno, Falco, Trivy, Snyk Container, Sigstore/Cosign, Prometheus, Grafana</p></div>
+                </div>
+              </article>
+            </div>
+          </section>
 
-            <article class="project-card reveal" data-category="devsecops" data-delay="240">
-              <div class="project-card-top">
-                <span class="project-status">BUILD 04 &middot; QUEUED</span>
-                <span>04</span>
-              </div>
-              <div class="project-visual visual-pipeline" aria-hidden="true">
-                <span>CODE</span><i></i><span>SCAN</span><i></i><span>PLAN</span><i></i
-                ><span>DEPLOY</span>
-                <b>OIDC / NO STATIC KEYS</b>
-              </div>
-              <div class="project-card-body">
-                <p class="project-type">DEVSECOPS / IaC</p>
-                <h3>Secure Terraform Pipeline</h3>
-                <p>
-                  A GitHub Actions workflow using AWS OIDC, static analysis, policy
-                  gates, approval controls, and auditable Terraform deployment.
-                </p>
-                <ul class="tag-list">
-                  <li>Terraform</li>
-                  <li>GitHub OIDC</li>
-                  <li>Checkov</li>
-                  <li>AWS</li>
-                </ul>
-                <button class="project-open" type="button" data-project="secure-pipeline">
-                  Open build brief <span aria-hidden="true">↗</span>
-                </button>
-              </div>
-            </article>
-          </div>
+          <section class="roadmap-phase" aria-labelledby="roadmap-phase-3">
+            <div class="roadmap-phase-heading">
+              <p class="section-index">PHASE 3</p>
+              <h3 id="roadmap-phase-3">AWS security and security operations</h3>
+            </div>
+            <div class="project-grid roadmap-grid">
+              <article class="project-card roadmap-card reveal">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>07 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">TERRAFORM / CLOUD BASELINE</p>
+                  <h3>AWS Infrastructure and Terraform Security</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Build Terraform modules, scan infrastructure as code, add policy-as-code, and test the automation.</p></div>
+                    <div><h4>AWS implementation</h4><p>Provision and audit a secure VPC, IAM, KMS, and EC2 foundation.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Terraform, Checkov, TFLint, Snyk IaC, Trivy, OPA/Conftest, Ansible, Python, Boto3, CloudTrail</p></div>
+                </div>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="60">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>08 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">SIEM / DETECTION / RESPONSE</p>
+                  <h3>SIEM, Detection Engineering, and Incident Response</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Deploy Splunk, ingest security logs, write SPL detections, investigate incidents, and build dashboards.</p></div>
+                    <div><h4>AWS implementation</h4><p>Integrate AWS security telemetry and automate approved response workflows.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Splunk, SPL, OpenTelemetry, Prometheus, Grafana, Python, Boto3, CloudTrail, GuardDuty, Security Hub, EventBridge, Lambda, SSM Automation</p></div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="roadmap-phase" aria-labelledby="roadmap-phase-4">
+            <div class="roadmap-phase-heading">
+              <p class="section-index">PHASE 4</p>
+              <h3 id="roadmap-phase-4">Enterprise capstones</h3>
+            </div>
+            <div class="project-grid roadmap-grid">
+              <article class="project-card roadmap-card reveal">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>09 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">AWS-NATIVE DELIVERY</p>
+                  <h3>AWS-Native Enterprise DevSecOps Pipeline</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Build application tests, scanning workflows, SBOM generation, artifact signing, and release verification.</p></div>
+                    <div><h4>AWS implementation</h4><p>Use CodePipeline and CodeBuild to deploy signed images to ECS Fargate with security controls.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>CodePipeline, CodeBuild, SonarQube, Snyk, Semgrep, ZAP, Gitleaks, Trivy, Syft, Sigstore/Cosign, Terraform, ECR, ECS, Boto3</p></div>
+                </div>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="60">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>10 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">GITHUB ACTIONS / GITOPS</p>
+                  <h3>Enterprise GitHub Actions and GitOps Platform</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Build secure workflows, test Kubernetes policies, verify signatures, and validate GitOps deployments.</p></div>
+                    <div><h4>AWS implementation</h4><p>Deploy to EKS with GitHub Actions and Argo CD, enforcing admission and runtime security.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>GitHub Actions, SonarQube, Snyk, ZAP, Argo CD, Helm, Kyverno, Falco, Trivy, Sigstore/Cosign, Terraform, Ansible, EKS</p></div>
+                </div>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="120">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>11 / 11</span></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">SECURITY OPERATIONS / AUTOMATION</p>
+                  <h3>Enterprise Security Operations and Automation Platform</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Correlate vulnerabilities and security events, test detections, and validate automated responses.</p></div>
+                    <div><h4>AWS implementation</h4><p>Centralize findings, SIEM telemetry, incident response, vulnerability management, and compliance evidence.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Splunk, DefectDojo, Python, Boto3, OpenTelemetry, Security Hub, GuardDuty, Inspector, EventBridge, Lambda, SSM Automation</p></div>
+                </div>
+              </article>
+            </div>
+          </section>
 
           <div class="foundation-work reveal">
             <div>

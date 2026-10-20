@@ -2966,19 +2966,8 @@ ul {
 @media (max-width: 580px) { .profile-snapshot { grid-template-columns: 1fr; } .evidence-standard { margin-top: 0; } .learning-card, .note-card { min-height: auto; padding: 24px; } .learning-top { align-items: flex-start; flex-direction: column; margin-bottom: 28px; } }
 
 
-/* Shared left-edge accent used by cards across the portfolio and Meridian case study. */
+/* Left-edge accent for cards on the Meridian project page. */
 :where(
-  .capability-card,
-  .project-card,
-  .timeline-item,
-  .credential-card,
-  .learning-card,
-  .note-card,
-  .principles article,
-  .hero-stats > div,
-  .profile-snapshot > div,
-  .evidence-standard > div:not(.evidence-intro),
-  .contact-panel,
   .story-summary article,
   .story-panel,
   .story-step,
@@ -2990,17 +2979,6 @@ ul {
 }
 
 :where(
-  .capability-card,
-  .project-card,
-  .timeline-item,
-  .credential-card,
-  .learning-card,
-  .note-card,
-  .principles article,
-  .hero-stats > div,
-  .profile-snapshot > div,
-  .evidence-standard > div:not(.evidence-intro),
-  .contact-panel,
   .story-summary article,
   .story-panel,
   .story-step,

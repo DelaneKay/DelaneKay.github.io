@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07111f" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="Project 01B is the planned AWS extension of the Linux Server Hardening project, focused on EC2 hardening, repeatable configuration, and audited administrative access." />
+    <link rel="canonical" href="https://delanekay.github.io/linux-hardening/aws/" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1" />
+    <link rel="stylesheet" href="/assets/styles.css?v=20261020-9" />
+    <title>Project 01B · AWS Linux Hardening | Kudakwashe Delan Sibanda</title>
+    <style>
+      body *, body *::before, body *::after { border-radius: 0 !important; }
+      .hardening-page { width: min(1120px, calc(100vw - 40px)); margin: 0 auto; }
+      .hardening-hero { padding: clamp(62px, 10vw, 112px) 0 52px; }
+      .hardening-kicker { color: var(--accent-strong); font: 800 .72rem ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
+      .hardening-hero h1 { max-width: 850px; margin-top: 18px; font-size: clamp(2.7rem, 7vw, 5.8rem); line-height: .98; letter-spacing: -.065em; }
+      .hardening-lede { max-width: 760px; margin-top: 22px; color: var(--muted-strong); font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.75; }
+      .hardening-status { display: inline-flex; margin-top: 25px; padding: 8px 11px; color: var(--accent-strong); border: 1px solid var(--line-strong); font: 800 .67rem ui-monospace, monospace; letter-spacing: .08em; }
+      .hardening-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding-bottom: 64px; }
+      .hardening-summary article, .hardening-panel { min-width: 0; padding: clamp(20px, 3vw, 30px); background: var(--surface); border: 1px solid var(--line); }
+      .hardening-summary strong, .hardening-panel h2 { color: var(--accent-strong); font: 800 .72rem ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+      .hardening-summary p, .hardening-panel p, .hardening-panel li { margin-top: 10px; color: var(--muted-strong); font-size: .9rem; line-height: 1.75; }
+      .hardening-section { padding: 52px 0; border-top: 1px solid var(--line); }
+      .hardening-section > h2 { margin-bottom: 20px; font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -.04em; }
+      .hardening-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .hardening-panel h3 { margin-top: 20px; font-size: 1.05rem; }
+      .hardening-panel ul { padding-left: 18px; }
+      .hardening-panel li + li { margin-top: 6px; }
+      .hardening-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+      .hardening-footer { padding: 30px 0 44px; color: var(--muted); font-size: .8rem; border-top: 1px solid var(--line); }
+      @media (max-width: 720px) {
+        .hardening-summary { grid-template-columns: 1fr; }
+        .hardening-panels { grid-template-columns: 1fr; }
+      }
+    </style>
+    <script src="/assets/script.js" defer></script>
+  </head>
+  <body>
+    <div class="scroll-progress" aria-hidden="true"><span id="scroll-progress-bar"></span></div>
+    <header class="site-header" id="site-header">
+      <a class="brand" href="/" aria-label="Kudakwashe Sibanda, home">
+        <span class="brand-mark" aria-hidden="true"><img src="/assets/favicon.png?v=1" alt="" /></span>
+        <span class="brand-copy"><strong>Kudakwashe Sibanda</strong><small>Cloud Security/DevSecOps Engineering</small></span>
+      </a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a class="nav-link" href="/#projects">Projects</a>
+        <a class="nav-link" href="/meridian/">Project 01A</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-button theme-toggle" type="button" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">◐</span></button>
+      </div>
+    </header>
+    <main class="hardening-page">
+      <section class="hardening-hero">
+        <p class="hardening-kicker">PROJECT 01B / LINUX SERVER HARDENING / AWS EXTENSION</p>
+        <span class="hardening-status">PLANNED IMPLEMENTATION</span>
+        <h1>AWS EC2 hardening</h1>
+        <p class="hardening-lede">This is the AWS track of my Linux Server Hardening project. It extends the completed local VirtualBox investigation into a repeatable EC2 baseline, with controlled administration and evidence that the controls work.</p>
+        <div class="hardening-actions">
+          <a class="button button-primary" href="/#projects">Back to project tracks <span aria-hidden="true">↗</span></a>
+          <a class="button button-ghost" href="/meridian/">View completed local Project 01A <span aria-hidden="true">↗</span></a>
+        </div>
+      </section>
+      <section class="hardening-summary" aria-label="Project scope">
+        <article><strong>Target</strong><p>Ubuntu EC2 instance in an isolated AWS lab environment.</p></article>
+        <article><strong>Objective</strong><p>Apply a secure baseline consistently and make privileged access auditable.</p></article>
+        <article><strong>State</strong><p>Planned project. No AWS deployment or test results are claimed as complete.</p></article>
+      </section>
+      <section class="hardening-section">
+        <h2>What this project will cover</h2>
+        <div class="hardening-panels">
+          <article class="hardening-panel">
+            <h2>Build plan</h2>
+            <h3>Provision and harden</h3>
+            <ul>
+              <li>Provision a scoped EC2 host and supporting network controls with Terraform.</li>
+              <li>Apply Linux baseline settings with Ansible, including SSH, permissions, firewall rules, and audit logging.</li>
+              <li>Use Systems Manager for managed administration where practical and record administrative access.</li>
+            </ul>
+          </article>
+          <article class="hardening-panel">
+            <h2>Evidence plan</h2>
+            <h3>Verify the security outcomes</h3>
+            <ul>
+              <li>Show the baseline configuration and the changes applied to the host.</li>
+              <li>Test allowed administration and denied access paths.</li>
+              <li>Run a security assessment and document findings, remediation, and repeat-run results.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+      <section class="hardening-section">
+        <h2>Planned tools</h2>
+        <div class="hardening-panel">
+          <p>Linux, Bash, Ansible, Lynis, OpenSCAP, auditd, UFW, Terraform, Amazon EC2, and AWS Systems Manager.</p>
+        </div>
+      </section>
+    </main>
+    <footer class="hardening-page hardening-footer">Kudakwashe Sibanda · Cloud Security/DevSecOps Engineering · <span id="current-year">2026</span></footer>
+  </body>
+</html>

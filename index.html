@@ -31,7 +31,7 @@
     <link rel="canonical" href="https://delanekay.github.io/" />
     <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1" />
     <link rel="manifest" href="site.webmanifest" />
-    <link rel="stylesheet" href="assets/styles.css?v=20261020-8" />
+    <link rel="stylesheet" href="assets/styles.css?v=20261020-9" />
     <style>
       body *, body *::before, body *::after { border-radius: 0 !important; }
       .project-card[data-card-clickable="true"] { cursor: pointer; }
@@ -496,7 +496,7 @@
               <h3 id="roadmap-phase-1">Security foundations and secure CI/CD</h3>
             </div>
             <div class="project-grid roadmap-grid">
-              <article class="project-card roadmap-card reveal">
+              <article class="project-card roadmap-card reveal" data-project-chooser="linux-hardening">
                 <div class="project-card-top"><span class="project-status">PROJECT 01A COMPLETE · EXTENSIONS PLANNED</span><span>01 / 11</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Linux servers, SSH hardening and firewall controls"><img class="roadmap-art-image" src="assets/project-art/01-linux-hardening.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
@@ -1127,6 +1127,33 @@
 
     <button class="back-to-top" type="button" aria-label="Back to top">↑</button>
 
+    <dialog class="project-choice-dialog" id="linux-hardening-choice" aria-labelledby="linux-hardening-choice-title">
+      <div class="project-choice-shell">
+        <div class="project-choice-heading">
+          <div>
+            <p class="dialog-index">PROJECT 01 / CHOOSE AN IMPLEMENTATION</p>
+            <h2 id="linux-hardening-choice-title">Linux Server Hardening</h2>
+            <p class="project-choice-intro">Two project tracks build on the same hardening goal. Choose the local lab or the AWS extension.</p>
+          </div>
+          <button class="dialog-close project-choice-close" type="button" aria-label="Close project choices">×</button>
+        </div>
+        <div class="project-choice-grid">
+          <a class="project-choice-card" href="/meridian/">
+            <div class="project-choice-top"><span>PROJECT 01A</span><span class="project-choice-status is-complete">COMPLETE</span></div>
+            <h3>Local VirtualBox lab</h3>
+            <p>Investigate and harden an Ubuntu reporting server in an isolated two-VM lab. Review the evidence, controls, and validation.</p>
+            <span class="project-choice-link">Open local project <span aria-hidden="true">↗</span></span>
+          </a>
+          <a class="project-choice-card" href="/linux-hardening/aws/">
+            <div class="project-choice-top"><span>PROJECT 01B</span><span class="project-choice-status">PLANNED</span></div>
+            <h3>AWS EC2 hardening</h3>
+            <p>Extend the baseline to a new EC2 host with automated hardening and audited administrative access.</p>
+            <span class="project-choice-link">Open AWS project brief <span aria-hidden="true">↗</span></span>
+          </a>
+        </div>
+      </div>
+    </dialog>
+
     <dialog class="project-dialog" id="project-dialog">
       <div class="dialog-shell">
         <div class="dialog-top">
@@ -1186,22 +1213,34 @@
       </div>
     </noscript>
     <script>
+      const linuxHardeningChoice = document.querySelector("#linux-hardening-choice");
+      const choiceCloseButton = linuxHardeningChoice?.querySelector(".project-choice-close");
+
+      choiceCloseButton?.addEventListener("click", () => linuxHardeningChoice.close());
+      linuxHardeningChoice?.addEventListener("click", (event) => {
+        if (event.target === linuxHardeningChoice) linuxHardeningChoice.close();
+      });
+
       document.querySelectorAll(".project-card").forEach((card) => {
+        const chooser = card.matches('[data-project-chooser="linux-hardening"]');
         const walkthrough = card.querySelector('a[href="/meridian/"]');
         const buildBrief = card.querySelector(".project-open[data-project]");
         const title = card.querySelector("h3")?.textContent.trim();
-        if (!walkthrough && !buildBrief) return;
+        if (!chooser && !walkthrough && !buildBrief) return;
 
         card.dataset.cardClickable = "true";
         card.tabIndex = 0;
-        card.setAttribute("role", walkthrough ? "link" : "button");
+        card.setAttribute("role", chooser || !walkthrough ? "button" : "link");
         card.setAttribute(
           "aria-label",
-          walkthrough ? `Open the ${title} project walkthrough` : `Open the ${title} build brief`,
+          chooser ? `Choose a local or AWS implementation for ${title}` :
+            walkthrough ? `Open the ${title} project walkthrough` : `Open the ${title} build brief`,
         );
 
         const activateCard = () => {
-          if (walkthrough) {
+          if (chooser) {
+            linuxHardeningChoice?.showModal();
+          } else if (walkthrough) {
             window.location.href = walkthrough.href;
           } else {
             buildBrief.click();

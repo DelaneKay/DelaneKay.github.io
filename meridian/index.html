@@ -66,6 +66,16 @@
       .story-table th { color: var(--text); background: var(--bg-soft); font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
       .story-table tr:last-child td { border-bottom: 0; }
       .story-table code { color: var(--cyan); }
+      html[data-theme="dark"] .story-table-wrap { border-color: #d6dee8; background: #f1f5f9; }
+      html[data-theme="dark"] .story-table { color: #111827; }
+      html[data-theme="dark"] .story-table th { color: #f8fafc; border-color: #334155; background: #101f33; }
+      html[data-theme="dark"] .story-table td { border-color: #cbd5e1; }
+      html[data-theme="dark"] .story-table code { color: #111827; background: #e2e8f0; }
+      html[data-theme="light"] .story-table-wrap { border-color: #26384d; background: #101f33; }
+      html[data-theme="light"] .story-table { color: #f1f5f9; }
+      html[data-theme="light"] .story-table th { color: #ffffff; border-color: #334155; background: #07111f; }
+      html[data-theme="light"] .story-table td { border-color: #334155; }
+      html[data-theme="light"] .story-table code { color: #111827; background: #f1f5f9; }
 
       .story-note { margin-top: 15px; padding: 14px 17px; border-left: 3px solid var(--cyan); border-radius: 0 10px 10px 0; background: var(--bg-soft); color: var(--muted-strong); font-size: .92rem; line-height: 1.65; }
       .story-steps { display: grid; gap: 14px; counter-reset: step; }

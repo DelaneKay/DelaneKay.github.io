@@ -1,103 +1,597 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#07111f" />
-    <meta name="color-scheme" content="dark light" />
-    <meta name="description" content="Project 01B is the planned AWS extension of the Linux Server Hardening project, focused on EC2 hardening, repeatable configuration, and audited administrative access." />
-    <link rel="canonical" href="https://delanekay.github.io/linux-hardening/aws/" />
-    <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1" />
-    <link rel="stylesheet" href="/assets/styles.css?v=20261020-9" />
-    <title>Project 01B · AWS Linux Hardening | Kudakwashe Delan Sibanda</title>
-    <style>
+<html lang="en" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#07111f"><meta name="description" content="A chronological, hands-on walkthrough of a private AWS Linux hardening lab using Terraform, AWS CLI, Systems Manager, Ansible, SFTP, UFW and auditd."><link rel="canonical" href="https://delanekay.github.io/linux-hardening/aws/"><link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1"><title>Proactive AWS Linux Hardening | Kudakwashe</title><style>
+      :root { --story-width: min(1120px, calc(100vw - 44px)); }
+      html { scroll-padding-top: 92px; }
+      body { font-size: 1rem; }
+      .story-nav { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(18px); }
+      .story-nav-inner { width: var(--story-width); min-height: 72px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+      .story-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .02em; }
+      .story-brand-mark { display: grid; width: 36px; aspect-ratio: 1; place-items: center; overflow: hidden; border-radius: 0; background: #07111f; }
+      .story-brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+      .story-nav-links { display: flex; align-items: center; gap: 18px; color: var(--muted-strong); font-size: .9rem; }
+      .story-nav-links a:hover { color: var(--accent); }
+      .story-wrap { width: var(--story-width); margin: auto; }
+      .story-hero { padding: clamp(62px, 9vw, 112px) 0 64px; }
+      .story-kicker, .story-index { color: var(--accent); font: 800 .78rem ui-monospace, "Cascadia Code", monospace; letter-spacing: .12em; text-transform: uppercase; }
+      .story-hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); align-items: center; gap: clamp(32px, 6vw, 76px); }
+      .story-hero h1 { max-width: 760px; margin: 20px 0 22px; font-size: clamp(2.7rem, 6vw, 5.3rem); line-height: .98; letter-spacing: -.065em; }
+      .story-hero h1 span { color: transparent; background: linear-gradient(115deg, var(--accent), #ffd089 48%, var(--cyan)); background-clip: text; }
+      .story-lede { max-width: 680px; color: var(--muted-strong); font-size: clamp(1.05rem, 1.8vw, 1.22rem); line-height: 1.75; }
+      .story-hero-art { position: relative; overflow: hidden; min-height: 285px; aspect-ratio: 1.5; border: 1px solid var(--line-strong); border-radius: 24px; box-shadow: var(--shadow); background: var(--bg-soft); }
+      .story-hero-art::after { position: absolute; inset: 50% 0 0; content: ""; background: linear-gradient(transparent, rgba(7,17,31,.62)); pointer-events: none; }
+      .story-hero-art img { width: 100%; height: 100%; min-height: 285px; object-fit: cover; }
+      .story-hero-art figcaption { position: absolute; z-index: 1; right: 18px; bottom: 15px; left: 18px; color: #d7e6f4; font-size: .77rem; }
+      .story-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .story-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 54px; }
+      .story-summary article { min-height: 112px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+      .story-summary strong { display: block; margin-bottom: 8px; color: var(--accent); font: 800 .76rem ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+      .story-summary span { color: var(--muted-strong); font-size: .98rem; line-height: 1.5; }
+      .story-section { padding: clamp(56px, 8vw, 96px) 0; border-top: 1px solid var(--line); }
+      .story-section-head { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; margin-bottom: 30px; }
+      .story-section h2 { max-width: 780px; font-size: clamp(1.9rem, 3.5vw, 3.1rem); line-height: 1.05; letter-spacing: -.045em; }
+      .story-section h3 { margin-bottom: 12px; font-size: 1.22rem; }
+      .story-prose { max-width: 850px; color: var(--muted-strong); font-size: 1.04rem; line-height: 1.82; }
+      .story-prose + .story-prose { margin-top: 16px; }
+      .story-prose strong { color: var(--text); }
+      .story-grid-two { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
+      .story-panel { padding: clamp(20px, 3vw, 30px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+      .story-panel { min-width: 0; }
+      .story-panel code { overflow-wrap: anywhere; }
+      .story-panel p { color: var(--muted-strong); font-size: 1rem; line-height: 1.75; }
+      .story-panel p + p { margin-top: 12px; }
+      .story-chip-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+      .story-chip-list span { padding: 7px 11px; color: var(--cyan); border: 1px solid color-mix(in srgb, var(--cyan) 32%, var(--line)); border-radius: 999px; font: 700 .75rem ui-monospace, monospace; }
+      .story-topology { overflow: hidden; margin-top: 26px; border: 1px solid var(--line); border-radius: 18px; background: var(--bg-soft); }
+      .story-topology img { width: 100%; height: auto; }
+      .story-topology figcaption { padding: 13px 17px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+      .story-code { overflow-x: auto; margin: 16px 0 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #081321; color: #d8e6f5; font: .88rem/1.7 ui-monospace, "Cascadia Code", monospace; }
+      .story-code code, .story-panel .story-code code { padding: 0; color: inherit; border-radius: 0; background: transparent; font: inherit; }
+      html[data-theme="dark"] .story-code { border-color: #d6dee8; background: #f1f5f9; color: #111827; }
+      html[data-theme="dark"] code { color: #111827; background: #e2e8f0; }
+      html[data-theme="dark"] .story-code code { color: inherit; background: transparent; }
+      html[data-theme="dark"] .story-chip-list span { color: #111827; border-color: #cbd5e1; background: #f1f5f9; }
+      html[data-theme="dark"] .story-chip-list span a { color: inherit; }
+      .story-table-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 14px; }
+      .story-table { width: 100%; border-collapse: collapse; color: var(--muted-strong); font-size: .92rem; line-height: 1.6; }
+      .story-table th, .story-table td { padding: 13px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+      .story-table th { color: var(--text); background: var(--bg-soft); font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+      .story-table tr:last-child td { border-bottom: 0; }
+      .story-table code { color: var(--cyan); }
+      html[data-theme="dark"] .story-table-wrap { border-color: #d6dee8; background: #f8fafc; }
+      html[data-theme="dark"] .story-table { color: #111827; }
+      html[data-theme="dark"] .story-table th { color: #ffffff; border-color: #0b1728; background: #07111f; }
+      html[data-theme="dark"] .story-table td { border-color: #cbd5e1; }
+      html[data-theme="dark"] .story-table code { color: #f8fafc; background: #101f33; }
+      html[data-theme="light"] .story-table-wrap { border-color: #07111f; background: #0b1728; }
+      html[data-theme="light"] .story-table { color: #f8fafc; }
+      html[data-theme="light"] .story-table th { color: #ffffff; border-color: #475569; background: #020617; }
+      html[data-theme="light"] .story-table td { border-color: #334155; }
+      html[data-theme="light"] .story-table code { color: #111827; background: #f1f5f9; }
+
+      .story-note { margin-top: 15px; padding: 14px 17px; border-left: 3px solid var(--cyan); border-radius: 0 10px 10px 0; background: var(--bg-soft); color: var(--muted-strong); font-size: .92rem; line-height: 1.65; }
+      .story-steps { display: grid; gap: 14px; counter-reset: step; }
+      .story-step { display: grid; grid-template-columns: 54px 1fr; gap: 16px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); counter-increment: step; }
+      .story-step::before { display: grid; width: 42px; height: 42px; place-items: center; content: "0" counter(step); color: var(--accent); border: 1px solid var(--line-strong); border-radius: 12px; font: 800 .8rem ui-monospace, monospace; }
+      .story-step h3 { margin: 1px 0 6px; font-size: 1.08rem; }
+      .story-step p { color: var(--muted-strong); font-size: .97rem; line-height: 1.7; }
+      .story-observation { display: grid; grid-template-columns: 190px 1fr; gap: 16px; padding: 17px 0; border-bottom: 1px solid var(--line); }
+      .story-observation:last-child { border-bottom: 0; }
+      .story-observation strong { color: var(--text); }
+      .story-observation p { color: var(--muted-strong); line-height: 1.65; }
+      .story-observation code, .story-prose code, .story-panel code { padding: .12em .35em; color: var(--cyan); border-radius: 5px; background: var(--bg-soft); font: .9em ui-monospace, monospace; }
+      .story-code-label { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; color: var(--muted); font: 700 .74rem ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; }
+      .story-principles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-top: 22px; }
+      .story-principles article { padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+      .story-principles h3 { margin-bottom: 8px; color: var(--accent); font-size: 1rem; }
+      .story-principles p { color: var(--muted-strong); font-size: .9rem; line-height: 1.65; }
+      .story-proof { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; margin-top: 26px; }
+      .story-proof a { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); transition: transform 180ms ease, border-color 180ms ease; }
+      .story-proof a:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+      .story-proof img { width: 100%; aspect-ratio: 16/9; object-fit: cover; object-position: top; background: var(--bg-soft); }
+      .story-proof span { display: block; padding: 13px 16px 15px; color: var(--muted-strong); font-size: .91rem; }
+      .story-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 30px 0 50px; color: var(--muted); font-size: .9rem; }
+      .story-footer a { color: var(--accent); }
       body *, body *::before, body *::after { border-radius: 0 !important; }
-      .hardening-page { width: min(1120px, calc(100vw - 40px)); margin: 0 auto; }
-      .hardening-hero { padding: clamp(62px, 10vw, 112px) 0 52px; }
-      .hardening-kicker { color: var(--accent-strong); font: 800 .72rem ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
-      .hardening-hero h1 { max-width: 850px; margin-top: 18px; font-size: clamp(2.7rem, 7vw, 5.8rem); line-height: .98; letter-spacing: -.065em; }
-      .hardening-lede { max-width: 760px; margin-top: 22px; color: var(--muted-strong); font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.75; }
-      .hardening-status { display: inline-flex; margin-top: 25px; padding: 8px 11px; color: var(--accent-strong); border: 1px solid var(--line-strong); font: 800 .67rem ui-monospace, monospace; letter-spacing: .08em; }
-      .hardening-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding-bottom: 64px; }
-      .hardening-summary article, .hardening-panel { min-width: 0; padding: clamp(20px, 3vw, 30px); background: var(--surface); border: 1px solid var(--line); }
-      .hardening-summary strong, .hardening-panel h2 { color: var(--accent-strong); font: 800 .72rem ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
-      .hardening-summary p, .hardening-panel p, .hardening-panel li { margin-top: 10px; color: var(--muted-strong); font-size: .9rem; line-height: 1.75; }
-      .hardening-section { padding: 52px 0; border-top: 1px solid var(--line); }
-      .hardening-section > h2 { margin-bottom: 20px; font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -.04em; }
-      .hardening-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-      .hardening-panel h3 { margin-top: 20px; font-size: 1.05rem; }
-      .hardening-panel ul { padding-left: 18px; }
-      .hardening-panel li + li { margin-top: 6px; }
-      .hardening-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-      .hardening-footer { padding: 30px 0 44px; color: var(--muted); font-size: .8rem; border-top: 1px solid var(--line); }
-      @media (max-width: 720px) {
-        .hardening-summary { grid-template-columns: 1fr; }
-        .hardening-panels { grid-template-columns: 1fr; }
+      @media (max-width: 850px) {
+        .story-hero-grid { grid-template-columns: 1fr; }
+        .story-hero-art { max-width: 660px; }
+        .story-section-head { grid-template-columns: 1fr; gap: 12px; }
+        .story-principles { grid-template-columns: repeat(2,1fr); }
+         .story-nav-inner { flex-wrap: wrap; padding: 10px 0; }
+        .story-nav-links { flex-wrap: wrap; justify-content: flex-end; gap: 10px; font-size: .8rem; }
       }
-    </style>
-    <script src="/assets/script.js" defer></script>
-  </head>
-  <body>
-    <div class="scroll-progress" aria-hidden="true"><span id="scroll-progress-bar"></span></div>
-    <header class="site-header" id="site-header">
-      <a class="brand" href="/" aria-label="Kudakwashe Sibanda, home">
-        <span class="brand-mark" aria-hidden="true"><img src="/assets/favicon.png?v=1" alt="" /></span>
-        <span class="brand-copy"><strong>Kudakwashe Sibanda</strong><small>Cloud Security/DevSecOps Engineering</small></span>
-      </a>
-      <nav class="desktop-nav" aria-label="Primary navigation">
-        <a class="nav-link" href="/#projects">Projects</a>
-        <a class="nav-link" href="/meridian/">Project 01A</a>
-      </nav>
-      <div class="header-actions">
-        <button class="icon-button theme-toggle" type="button" aria-label="Switch to light theme"><span class="theme-icon" aria-hidden="true">◐</span></button>
-      </div>
-    </header>
-    <main class="hardening-page">
-      <section class="hardening-hero">
-        <p class="hardening-kicker">PROJECT 01B / LINUX SERVER HARDENING / AWS EXTENSION</p>
-        <span class="hardening-status">PLANNED IMPLEMENTATION</span>
-        <h1>AWS EC2 hardening</h1>
-        <p class="hardening-lede">This is the AWS track of my Linux Server Hardening project. It extends the completed local VirtualBox investigation into a repeatable EC2 baseline, with controlled administration and evidence that the controls work.</p>
-        <div class="hardening-actions">
-          <a class="button button-primary" href="/#projects">Back to project tracks <span aria-hidden="true">↗</span></a>
-          <a class="button button-ghost" href="/meridian/">View completed local Project 01A <span aria-hidden="true">↗</span></a>
-        </div>
-      </section>
-      <section class="hardening-summary" aria-label="Project scope">
-        <article><strong>Target</strong><p>Ubuntu EC2 instance in an isolated AWS lab environment.</p></article>
-        <article><strong>Objective</strong><p>Apply a secure baseline consistently and make privileged access auditable.</p></article>
-        <article><strong>State</strong><p>Planned project. No AWS deployment or test results are claimed as complete.</p></article>
-      </section>
-      <section class="hardening-section">
-        <h2>What this project will cover</h2>
-        <div class="hardening-panels">
-          <article class="hardening-panel">
-            <h2>Build plan</h2>
-            <h3>Provision and harden</h3>
-            <ul>
-              <li>Provision a scoped EC2 host and supporting network controls with Terraform.</li>
-              <li>Apply Linux baseline settings with Ansible, including SSH, permissions, firewall rules, and audit logging.</li>
-              <li>Use Systems Manager for managed administration where practical and record administrative access.</li>
-            </ul>
-          </article>
-          <article class="hardening-panel">
-            <h2>Evidence plan</h2>
-            <h3>Verify the security outcomes</h3>
-            <ul>
-              <li>Show the baseline configuration and the changes applied to the host.</li>
-              <li>Test allowed administration and denied access paths.</li>
-              <li>Run a security assessment and document findings, remediation, and repeat-run results.</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-      <section class="hardening-section">
-        <h2>Planned tools</h2>
-        <div class="hardening-panel">
-          <p>Linux, Bash, Ansible, Lynis, OpenSCAP, auditd, UFW, Terraform, Amazon EC2, and AWS Systems Manager.</p>
-        </div>
-      </section>
-    </main>
-    <footer class="hardening-page hardening-footer">Kudakwashe Sibanda · Cloud Security/DevSecOps Engineering · <span id="current-year">2026</span></footer>
-  </body>
-</html>
+      @media (max-width: 600px) {
+        :root { --story-width: calc(100vw - 30px); }
+        .story-nav-inner { min-height: 62px; }
+        .story-nav-links a:not(.story-home) { display: none; }
+        .story-summary, .story-grid-two, .story-proof, .story-principles { grid-template-columns: 1fr; }
+        .story-hero { padding-top: 54px; }
+        .story-hero h1 { font-size: clamp(2.45rem, 12vw, 3.6rem); }
+        .story-hero-art, .story-hero-art img { min-height: 220px; }
+        .story-observation { grid-template-columns: 1fr; gap: 5px; }
+        .story-step { grid-template-columns: 42px 1fr; gap: 12px; }
+        .story-step::before { width: 36px; height: 36px; }
+      }
+    
+      /* Use the accent only for Meridian cards in multi-column sections. */
+      @media (min-width: 601px) {
+        .story-summary > article,
+        .story-grid-two > .story-panel,
+        .story-proof > a,
+        .story-principles > article { position: relative; }
+        .story-summary > article::before,
+        .story-grid-two > .story-panel::before,
+        .story-proof > a::before,
+        .story-principles > article::before {
+          position: absolute;
+          z-index: 2;
+          inset: 0 auto 0 0;
+          width: 3px;
+          content: "";
+          background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 36%, transparent) 54%, transparent 100%);
+          pointer-events: none;
+        }
+      }
+
+.story-hero-art img{object-fit:contain!important;background:rgba(255,255,255,.96);padding:16px}
+.story-figure{margin:24px 0 34px}.story-figure img{width:100%;height:auto;border-radius:16px;border:1px solid var(--line);background:#fff}.story-figure figcaption{margin-top:9px;color:var(--muted);font-size:.88rem}
+.story-prose h3{margin-top:2.1rem}.story-prose h4{margin-top:1.5rem}
+.story-prose pre.story-code{white-space:pre;overflow:auto;max-width:100%;background:#08111e;color:#e5eef8;padding:18px 20px;border:1px solid rgba(148,163,184,.22);border-radius:12px;font-size:.88rem;line-height:1.55}
+.story-prose table{min-width:620px}
+.story-prose blockquote{margin:18px 0;padding:8px 18px;border-left:3px solid var(--accent);color:var(--muted)}
+.story-prose hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.story-prose img{max-width:100%}
+.story-prose li{margin:.35em 0}
+.story-nav-links a{white-space:nowrap}
+@media(max-width:900px){.story-nav-links{overflow-x:auto}.story-hero-art img{max-height:400px;object-fit:contain!important}}
+</style></head><body>
+<header class="story-nav"><div class="story-nav-inner"><a class="story-brand" href="/#projects"><span class="story-brand-mark"><img src="/assets/favicon.png?v=1" alt=""></span><span>PROACTIVE AWS HARDENING / 01B</span></a><nav class="story-nav-links" aria-label="Walkthrough sections"><a href="#lab-scenario">Scenario</a><a href="#layer-1">AWS setup</a><a href="#layer-2">Access + SFTP</a><a href="#layer-3">Linux hardening</a><a href="#layer-4">Validation</a><a class="story-home" href="/#projects">Portfolio ↗</a><button class="icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"><span class="theme-icon" aria-hidden="true">◐</span></button></nav></div></header>
+<main><section class="story-hero"><div class="story-wrap"><div class="story-hero-grid"><div><p class="story-kicker">PROJECT 01B / PROACTIVE LINUX HARDENING</p><h1>A private AWS lab.<br><span>A hardened SFTP server.</span></h1><p class="story-lede">My hands-on journey building and hardening a private Ubuntu server in AWS, from the WSL workstation and Terraform deployment through SSM, Ansible, SFTP validation, and cleanup.</p><div class="story-actions"><a class="button button-primary" href="#lab-scenario">Follow the walkthrough <span aria-hidden="true">↓</span></a><a class="button button-outline" href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening" target="_blank" rel="noopener noreferrer">Open project repository ↗</a></div></div><figure class="story-hero-art"><img src="/assets/project-1b-aws-architecture.png" alt="AWS architecture: WSL workstation manages a private admin controller and target server through Systems Manager, with NAT egress and an S3 gateway endpoint"><figcaption>Private three-node lab architecture</figcaption></figure></div><div class="story-summary" aria-label="Project summary"><article><strong>AWS, AWS CLI, Terraform, IAM, Systems Manager Session Manager, Ubuntu, Ansible, OpenSSH/SFTP, AppArmor, UFW, and auditd.</strong><span></span></article><article><strong>I needed to build a private file-transfer server, restrict the transfer account to its intended job, and harden the Linux host without opening public SSH access.</strong><span></span></article><article><strong>I provisioned the AWS lab with Terraform, managed the private target through Session Manager, and used Ansible and Linux controls to configure it. The SFTP account could transfer a test text file but could not write at the chroot root or start a shell. Matching SHA-256 hashes confirmed the file survived upload and download intact. After the demonstration, I used `terraform destroy` to remove the lab resources.</strong><span></span></article></div></div></section>
+<section class="story-section" id="lab-scenario"><div class="story-wrap"><div class="story-section-head"><p class="story-index">THE LAB DESIGN</p><h2>The lab scenario</h2></div><div class="story-prose"><p>I wanted a file-transfer service that could accept a file from an authorized user while keeping the server private and limiting that user's access to the upload area. I built a new AWS lab environment rather than investigating a pre-existing compromised server.</p><p>I kept several security principles in mind as I worked. Infrastructure as Code made the cloud design reviewable and repeatable. Private subnets and Session Manager reduced the need to expose SSH to the internet. Least privilege shaped the SFTP account and its chroot boundary. Audit rules and host logs helped me observe security-relevant activity, while SHA-256 checksums let me verify the transferred file's integrity.</p><p>I worked from Ubuntu in WSL with Terraform and the AWS CLI, using IAM and browser-based AWS sign-in to manage the account. Terraform created two private EC2 instances: an admin node that ran Ansible and a target node that hosted the SFTP service. I connected to the admin node with Session Manager; Ansible then used <code>amazon.aws.aws_ssm</code> and a private S3 transfer bucket to configure the target. On that target, I checked Linux services and applied AppArmor, UFW, auditd, and kernel hardening. After testing SFTP and comparing file hashes, I used Terraform to tear down the lab.</p><h3>The three-node lab layout</h3><p>The lab had three working nodes: my WSL workstation, the private admin EC2 instance, and the private target EC2 instance. The arrows show the management and configuration flow:</p><figure class="story-figure"><img src="/assets/project-1b-aws-architecture.png" alt="Project 1B AWS infrastructure architecture"><figcaption>Project 1B AWS infrastructure architecture</figcaption></figure><p><strong>Diagram legend:</strong> Blue arrows show SSM management sessions, including port forwarding. Black arrows show internet egress through the NAT Gateway and Internet Gateway. Orange outlines mark the EC2 security-group boundaries inside the private subnets.</p><p>The admin and target instances had no public IPs or inbound security-group rules. Session Manager let me administer them through AWS-managed sessions, while the S3 Gateway endpoint carried the temporary files Ansible needed without routing that S3 traffic through the NAT Gateway. This walkthrough follows the dependencies from the beginning: I explain each tool before using it, identify the terminal for each command, and give a checkpoint before the next phase. Repository file links show the configuration alongside the walkthrough.</p><div class="story-table-wrap"><table><thead><tr><th>Layer</th><th>Sequence</th></tr></thead><tbody><tr><td>---</td><td>---</td></tr><tbody><tr><td><a href="#1-aws-infrastructure-layer" target="_blank" rel="noopener noreferrer">1. AWS infrastructure</a></td><td>Understand automation → prepare WSL → check/install tools → authenticate to AWS → get the project files → inspect AWS → define infrastructure → plan and deploy</td></tr><tbody><tr><td><a href="#2-access-management--ssh-hardening" target="_blank" rel="noopener noreferrer">2. Access management and SSH hardening</a></td><td>Confirm SSM connectivity → inspect the target → prepare the Ansible controller and inventory → check the data mount and chroot → create the SFTP identity → stage the public key and configuration → apply and check it</td></tr><tbody><tr><td><a href="#3-linux-operating-system-hardening" target="_blank" rel="noopener noreferrer">3. Linux operating system hardening</a></td><td>Check packages and updates → inspect AppArmor → verify the host firewall → load and test audit rules → verify kernel settings → review host health</td></tr><tbody><tr><td><a href="#4-validation-and-cleanup" target="_blank" rel="noopener noreferrer">4. Validation and cleanup</a></td><td>Verify the server identity → transfer the text file → test denied actions → retain evidence → destroy resources → check the result</td></tr></tbody></table></div><p><strong>Starting point:</strong> I began on my Windows workstation with Ubuntu in WSL and authorized access to an AWS account for this lab. Each step names the terminal to use. I treated the shell and SFTP prompts as indicators of which terminal I was in, not as text to copy into a command. I worked through one block at a time and fixed errors before moving on.</p></div></div></section><section class="story-section" id="layer-1"><div class="story-wrap"><div class="story-section-head"><p class="story-index">LAYER 1 / AWS INFRASTRUCTURE</p><h2>1. AWS infrastructure layer</h2></div><div class="story-prose"><h3>1.1 Why I started with automation, then checked my local WSL environment</h3><p>Automation is central to DevSecOps because I need changes I can review, repeat, and remove reliably. I chose <strong>Infrastructure as Code (IaC)</strong> for the AWS resources: describe the desired infrastructure in files, review a proposed change, and let Terraform create it consistently. Later, Ansible would configure the Linux server. Terraform and Ansible have different jobs, so I prepared Terraform first.</p><p>Before touching AWS, I needed to know which Linux environment and user I was working in.</p><p>I ran these checks in the Ubuntu terminal on my WSL workstation:</p><pre class="story-code"><code>whoami
+hostname
+cat /etc/os-release
+uname -r</code></pre><p><code>whoami</code> identifies my local Linux user, <code>hostname</code> identifies the machine, and the last two commands identify the operating system and kernel. My workstation reported a Microsoft WSL2 kernel. This was my local computer; no EC2 instance existed yet.</p><p>I initially worked as root, so I created a regular account for routine commands and added it to the <code>sudo</code> group for tasks that needed elevation. I ran this setup because I was root and <code>devsecops</code> did not exist; if your WSL account already has <code>sudo</code> access, continue with that account.</p><pre class="story-code"><code>adduser devsecops
+usermod -aG sudo devsecops
+id devsecops
+su - devsecops</code></pre><p><code>adduser</code> creates the local account and asks for its password. <code>usermod -aG sudo</code> adds it to the sudo group while preserving other groups. <code>id devsecops</code> confirms the account and memberships; <code>su -</code> switches to that user's login environment.</p><p>Before installing or using the AWS tools, I checked that I had switched out of root and could still elevate when a system-level change required it. Running routine work as an ordinary user limits unnecessary root access; <code>sudo</code> remains available for tasks that need it.</p><pre class="story-code"><code>whoami
+sudo whoami</code></pre><p><strong>Checkpoint:</strong> <code>whoami</code> should show my ordinary WSL account, while <code>sudo whoami</code> should return <code>root</code>. That confirmed the local Linux privileges were set up as intended. This account is separate from the AWS identity I configure next.</p><h3>1.2 I checked Terraform and AWS CLI before trying to use them</h3><p>I checked these versions from my ordinary WSL account:</p><pre class="story-code"><code>terraform version
+aws --version</code></pre><p>Terraform manages the infrastructure files; the AWS Command Line Interface (CLI) lets me authenticate and query AWS. These version checks showed which tools were available to my current user.</p><p>My Terraform check returned version <code>1.16.6</code>. AWS CLI was available under a different user but initially returned <code>command not found</code> for <code>devsecops</code>. I learned that installing a tool under root does not make a user-local installation available to every account.</p><p>Terraform was already installed, so I did not install it again. The version check confirmed that the expected Terraform tool was available.</p><p>For the missing AWS CLI, I ran AWS's v2 installer from my ordinary <code>devsecops</code> WSL account. This command downloads the installer and passes it to Bash; the Linux default installs for the current user, placing the executable under <code>/home/devsecops/.local/bin</code> (<a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html" target="_blank" rel="noopener noreferrer">AWS CLI installation guide</a>):</p><pre class="story-code"><code>curl -fsSL https://awscli.amazonaws.com/v2/install.sh | bash</code></pre><p>The installation reported AWS CLI <code>2.38.3</code>. I checked the user-local executable directly:</p><pre class="story-code"><code>/home/devsecops/.local/bin/aws --version</code></pre><p>I added the AWS CLI location to <code>PATH</code> for this shell and saved it in <code>~/.bashrc</code> for future shells. I then checked AWS CLI and Terraform again and checked whether Ansible was installed locally:</p><pre class="story-code"><code>export PATH=&quot;$HOME/.local/bin:$PATH&quot;
+source ~/.bashrc
+aws --version
+terraform version
+ansible --version</code></pre><p>The check showed that Ansible was not installed in WSL. I used WSL for Terraform and the AWS CLI, and ran Ansible from the private admin EC2 instance, which served as the controller for the target.</p><p><strong>Checkpoint:</strong> Terraform and AWS CLI were ready in WSL. I had not signed in to AWS or created any resources yet, so my next step was to establish an authorized AWS identity.</p><h3>1.3 I established an AWS identity before using a named profile</h3><p>Having <code>aws</code> installed does not grant access to an AWS account. My first identity check returned <code>NoCredentials</code>, so I needed to authenticate the CLI before AWS could identify me or accept account changes.</p><p>For this lab, I used a dedicated IAM user and a named AWS CLI profile. A profile is the local configuration that selects credentials and settings; the Linux user <code>devsecops</code>, IAM user <code>mds-devsecops-lab</code>, and CLI profile <code>mds-devsecops-lab</code> are separate identities.</p><p>For the initial AWS account setup, I used the AWS account root user to create a separate lab IAM user and enroll MFA. I then signed in as that IAM user with browser-based <code>aws login</code>, which supplied short-lived CLI credentials. For this lab, that was a better fit than using the legacy <code>aws configure</code> prompts to save long-lived IAM access keys. It improved security by avoiding a reusable access key in my local AWS configuration; the temporary CLI credentials expired, limiting how long they could be used if exposed. If I already had an authorized IAM Identity Center role, I could use it for the lab instead of creating a separate IAM user.</p><p>I ran the identity check before signing in, then started browser sign-in and set the default Region:</p><pre class="story-code"><code>aws sts get-caller-identity
+aws login
+aws configure set region us-east-1</code></pre><p><code>aws login</code> opened browser sign-in; the Region setting selected where later requests would go, not the credentials. Once authenticated, I confirmed the active identity was root before creating the separate lab user.</p><p>With the root identity confirmed, I created the separate lab IAM user, granted it browser-based CLI sign-in and the permissions needed to provision this lab, then checked the attached policies. I ran these bootstrap commands before the named lab profile existed:</p><pre class="story-code"><code>aws iam create-user --user-name mds-devsecops-lab --query 'User.UserName' --output text
+aws iam attach-user-policy --user-name mds-devsecops-lab --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
+aws iam attach-user-policy --user-name mds-devsecops-lab --policy-arn arn:aws:iam::aws:policy/SignInLocalDevelopmentAccess
+aws iam list-attached-user-policies --user-name mds-devsecops-lab</code></pre><p><code>SignInLocalDevelopmentAccess</code> enabled browser-based CLI sign-in. <code>AdministratorAccess</code> supplied the human lab user's broad resource permissions; neither server received that administrator policy.</p><p>With the policies attached, I created an AWS console login profile for the IAM user <code>mds-devsecops-lab</code>. The password I entered here was that user's initial AWS Management Console password, which AWS required them to change at first sign-in. The script hid the password and confirmation, passed them to AWS in a restricted temporary file, and removed the file when it exited:</p><pre class="story-code"><code>set -e
+umask 077
+login_input=&quot;$(mktemp)&quot;
+trap 'rm -f &quot;$login_input&quot;' EXIT
+
+python3 - &quot;$login_input&quot; &lt;&lt;'PY'
+import getpass
+import json
+import sys
+
+password = getpass.getpass(&quot;Choose a temporary password for mds-devsecops-lab: &quot;)
+confirmation = getpass.getpass(&quot;Enter it again: &quot;)
+
+if password != confirmation:
+    raise SystemExit(&quot;Passwords did not match; no login profile was created.&quot;)
+
+with open(sys.argv[1], &quot;w&quot;) as file:
+    json.dump({
+        &quot;UserName&quot;: &quot;mds-devsecops-lab&quot;,
+        &quot;Password&quot;: password,
+        &quot;PasswordResetRequired&quot;: True
+    }, file)
+PY
+
+aws iam create-login-profile \
+  --cli-input-json &quot;file://$login_input&quot; \
+  --query 'LoginProfile.UserName' \
+  --output text</code></pre><p>I created a virtual MFA device and scanned its private QR image. My first attempt to open the image from WSL failed with <code>explorer.exe: command not found</code>:</p><pre class="story-code"><code>explorer.exe &quot;$(wslpath -w &quot;$HOME/.aws/mds-devsecops-lab-mfa.png&quot;)&quot;</code></pre><p>I used <code>wslpath</code> to convert the Linux image location into a Windows path that File Explorer could open:</p><pre class="story-code"><code>wslpath -w /home/devsecops/.aws/mds-devsecops-lab-mfa.png</code></pre><p>After switching back to <code>devsecops</code>, I loaded the virtual MFA device's serial into the current shell so the enrollment request could refer to the correct authenticator:</p><pre class="story-code"><code>export mfa_serial=&quot;$(aws iam list-virtual-mfa-devices \
+  --query &quot;VirtualMFADevices[?contains(SerialNumber, 'mds-devsecops-lab')].SerialNumber | [0]&quot; \
+  --output text)&quot; &amp;&amp; printf 'MFA device serial loaded for enrollment.\n'</code></pre><p>I entered two consecutive authenticator codes through hidden prompts. The script placed the enrollment request in a private temporary file, asked IAM to attach the authenticator, and removed the file afterward:</p><pre class="story-code"><code>python3 - &lt;&lt;'PY'
+import getpass
+import json
+import os
+import subprocess
+import tempfile
+
+serial = os.environ.get(&quot;mfa_serial&quot;)
+if not serial:
+    raise SystemExit(&quot;mfa_serial is not available. Reload it first in this terminal.&quot;)
+
+code1 = getpass.getpass(&quot;First authenticator code (hidden): &quot;)
+code2 = getpass.getpass(&quot;Next code after it changes (hidden): &quot;)
+
+payload = {
+    &quot;UserName&quot;: &quot;mds-devsecops-lab&quot;,
+    &quot;SerialNumber&quot;: serial,
+    &quot;AuthenticationCode1&quot;: code1,
+    &quot;AuthenticationCode2&quot;: code2,
+}
+
+fd, path = tempfile.mkstemp(prefix=&quot;mfa-enroll-&quot;, suffix=&quot;.json&quot;)
+try:
+    os.fchmod(fd, 0o600)
+    with os.fdopen(fd, &quot;w&quot;) as f:
+        json.dump(payload, f)
+    result = subprocess.run(
+        [&quot;aws&quot;, &quot;iam&quot;, &quot;enable-mfa-device&quot;, &quot;--cli-input-json&quot;, f&quot;file://{path}&quot;],
+        check=False,
+    )
+    raise SystemExit(result.returncode)
+finally:
+    try:
+        os.unlink(path)
+    except FileNotFoundError:
+        pass
+PY</code></pre><p>After enrolling the device, I checked how many MFA devices IAM listed for the new user:</p><pre class="story-code"><code>aws iam list-mfa-devices \
+  --user-name mds-devsecops-lab \
+  --query 'length(MFADevices)' \
+  --output text</code></pre><p>IAM returned <code>1</code>, confirming that the new user had one MFA device. I deleted the QR image after enrollment because it contains the seed used to generate MFA codes. I kept that seed, passwords, and one-time codes out of the repository, following <a href="https://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateVirtualMFADevice.html" target="_blank" rel="noopener noreferrer">AWS's guidance to protect the QR seed like a password</a>. With MFA enrollment confirmed, I checked the bootstrap identity and signed out:</p><pre class="story-code"><code>aws sts get-caller-identity --query 'Arn' --output text
+aws logout</code></pre><p>The ARN identified the root session, and <code>aws logout</code> removed its cached CLI credentials.</p><p><strong>Problem I encountered:</strong> I could sign in to the IAM user's console before the named AWS CLI profile existed, but my first profile-specific CLI call returned “The config profile could not be found.” I created and authenticated the profile, then checked the active identity and default Region:</p><pre class="story-code"><code>aws login --profile mds-devsecops-lab
+aws sts get-caller-identity --profile mds-devsecops-lab
+aws configure get region --profile mds-devsecops-lab</code></pre><p>I selected the lab IAM user in the browser. <code>get-caller-identity</code> confirmed the active principal, and the Region check returned <code>us-east-1</code>. That completed the named CLI profile setup.</p><p>Later, I needed to reset the AWS console password for <code>mds-devsecops-lab</code>. Signing in again with <code>aws login</code> would refresh the CLI session, not change the console password. I used the <code>root-recovery</code> profile because it had the administrator access needed to update the IAM user's password. The block below performs that reset: it prompts for a new password and confirmation without displaying them, sends the request to IAM through a restricted temporary file, and removes the file when it exits.</p><pre class="story-code"><code>(
+  set -e
+  umask 077
+
+  login_input=&quot;$(mktemp)&quot;
+  trap 'rm -f &quot;$login_input&quot;' EXIT
+
+  python3 - &quot;$login_input&quot; &lt;&lt;'PY'
+import getpass
+import json
+import sys
+
+password = getpass.getpass(&quot;New password for mds-devsecops-lab: &quot;)
+confirmation = getpass.getpass(&quot;Enter it again: &quot;)
+
+if not password or password != confirmation:
+    raise SystemExit(&quot;Passwords are empty or do not match. Nothing changed.&quot;)
+
+with open(sys.argv[1], &quot;w&quot;) as file:
+    json.dump({
+        &quot;UserName&quot;: &quot;mds-devsecops-lab&quot;,
+        &quot;Password&quot;: password,
+        &quot;PasswordResetRequired&quot;: False
+    }, file)
+PY
+
+  aws iam update-login-profile \
+    --cli-input-json &quot;file://$login_input&quot; \
+    --profile root-recovery \
+    --no-cli-auto-prompt
+
+  printf 'IAM user password updated successfully.\n'
+)</code></pre><p>The password update succeeded. I then returned to browser sign-in with the named <code>mds-devsecops-lab</code> profile and used <code>us-east-1</code> for subsequent AWS checks.</p><p>With the lab profile working, I checked whether AWS activity would be traceable before I created infrastructure. That matters because an audit record can help identify who made a change, when it happened, and what AWS resource was affected—useful when validating a lab deployment or investigating an unexpected change. I used <code>aws cloudtrail describe-trails</code> to see whether the account had a configured trail for ongoing log delivery, then <code>aws cloudtrail lookup-events</code> to check the recent management event history. The first check returned no trails, but the second still showed recent events for my lab user. I had visibility into recent activity, but no configured trail from this check; setting up broader monitoring was outside the Linux-hardening work.</p><h3>1.4 I created the Terraform files in my local project directory</h3><p>I created a working directory for the lab at <code>/home/devsecops/mds-aws-linux-hardening-1b</code> and used it to build and check the Terraform configuration before deploying anything. I confirmed I was in the right place with <code>cd</code> and <code>pwd</code>. The files were first created on my WSL machine; after the lab was complete, I organized and published them in this GitHub repository.</p><pre class="story-code"><code>cd ~/mds-aws-linux-hardening-1b
+pwd</code></pre><p>With the workspace ready, I started by defining Terraform’s requirements and the inputs for the lab. <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/versions.tf" target="_blank" rel="noopener noreferrer">versions.tf</a> records the Terraform and AWS provider versions, while <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/variables.tf" target="_blank" rel="noopener noreferrer">variables.tf</a> defines the values the configuration can accept; my local <code>terraform.tfvars</code> supplied the lab-specific values. I initialized the AWS provider and validated the configuration as I built it. The commands below reflect the original layout, where the <code>.tf</code> files were directly in the working directory; they are now grouped under <code>terraform/</code> in this repository.</p><h3>1.5 I inspected AWS before choosing the lab's network, image, and storage</h3><p>I had working tools, credentials, and source files. Next I needed facts to inform the design: an unused network range, a supported Availability Zone and instance size, the intended Ubuntu image, and the account's storage-encryption default.</p><p>From WSL, I used my lab profile for read-only AWS queries. I first checked existing VPCs, Availability Zones, and T2/T3 offerings to select the network and instance sizes, then checked the Ubuntu image and EBS encryption defaults:</p><pre class="story-code"><code>aws ssm get-parameter \
+  --name /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id \
+  --query 'Parameter.Value' \
+  --output text \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><pre class="story-code"><code>aws ec2 describe-images \
+  --image-ids ami-02a9cdd4e98bc3c78 \
+  --query 'Images[].{ImageId:ImageId,Name:Name,OwnerId:OwnerId,Architecture:Architecture,CreationDate:CreationDate,State:State,RootDeviceType:RootDeviceType,VirtualizationType:VirtualizationType}' \
+  --output table \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><pre class="story-code"><code>aws ec2 get-ebs-encryption-by-default \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><pre class="story-code"><code>aws ec2 get-ebs-default-kms-key-id \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><p>The VPC query showed that my existing default VPC used <code>172.31.0.0/16</code>. I was creating a separate VPC for this lab, so <code>10.20.0.0/16</code> is the address range I assigned to the new lab VPC; it is not an address range that the existing default VPC already used. I divided that dedicated range into the NAT, admin, and target subnets in the Terraform network configuration. My checks confirmed that <code>us-east-1a</code> was available and that both <code>t3.small</code> and <code>t3.micro</code> were offered in the Region. I also verified that the Ubuntu image was available, used the <code>x86_64</code> architecture, and was published by Canonical (<code>099720109477</code>). Because Ubuntu’s image ID can change as new images are released, <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/ami.tf" target="_blank" rel="noopener noreferrer">ami.tf</a> retrieves the current ID from AWS Systems Manager Parameter Store during deployment.</p><p>I checked the account’s EBS encryption defaults before setting up storage. Default encryption was disabled, although <code>alias/aws/ebs</code> was available as the default key. To make sure the lab’s root and SFTP data volumes were encrypted, I enabled encryption explicitly in <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/compute.tf" target="_blank" rel="noopener noreferrer">compute.tf</a>. This protects data stored on the EBS volumes; Linux permissions control access to files after the volumes are mounted.</p><p><strong>Problem I encountered:</strong> my first VPC query failed with <code>OptInRequired</code>, so I stopped and retried instead of choosing a range without checking the existing network. The retry returned the default VPC details, although I never established what caused the first error.</p><p><strong>Checkpoint:</strong> I had now checked the existing VPC range, assigned a separate CIDR to the lab VPC, and confirmed that the selected Availability Zone, instance sizes, and Ubuntu image were available. When repeating the lab, check these values in your own account and adjust the inputs in Phase 1.7 if needed.</p><h3>1.6 I translated those checks into the AWS design and Terraform files</h3><p>Only now did I have enough information to settle the deployment. I needed three machines with clear responsibilities: my existing WSL workstation would run Terraform and AWS CLI; a private admin EC2 would run Ansible; a private target EC2 would host SFTP.</p><p>That three-node design also shaped how I would administer the two EC2 instances. Because they would sit in private subnets without public IPs, I needed a secure way to manage them without exposing SSH to network connections. I chose Systems Manager Session Manager: IAM controls who can start a session, and each instance’s SSM agent opens an outbound connection to the service. This kept port 22 unreachable from outside the VPC, reducing exposure to scanning and SSH attacks. Since access went through IAM and Systems Manager, I did not need SSH ingress rules or a public bastion to maintain. The target still needed OpenSSH for SFTP, so I planned to use an SSM port-forwarding tunnel to reach that service without making it publicly accessible.</p><pre class="story-code"><code>Operator workstation (WSL: Terraform + AWS CLI)
+       | SSM Session Manager
+       +-------------------------&gt; Private admin EC2 (t3.small, Ansible)
+       |                                   |
+       |                                   | Ansible amazon.aws.aws_ssm
+       |                                   | SSM channels + temporary S3 transfer
+       |                                   v
+       +-- SSM port forwarding ------&gt; Private target EC2 (t3.micro, Ubuntu 24.04.5)
+                                           | local OpenSSH/SFTP :22
+                                           | no inbound SG rules
+                                           +-- encrypted 5 GiB EBS data volume
+                                               /srv/sftp-data/upload
+
+Private subnet egress -&gt; one public-subnet NAT Gateway -&gt; Internet
+Private S3 transfer bucket -&gt; S3 Gateway VPC endpoint</code></pre><p>Although the EC2 instances had no public IPs or inbound SSH access, they still needed outbound connectivity for Systems Manager, Ubuntu updates, and other permitted services. To provide that egress, I compared a self-managed NAT instance with AWS’s managed NAT Gateway. A NAT instance would add another Linux server for me to configure, harden, patch, monitor, and recover if it failed. I chose the NAT Gateway to avoid that operational work, while recognizing that a managed gateway has an ongoing service cost. I placed one Gateway in one Availability Zone because the lab did not need multi-AZ egress.</p><p>The table below summarizes the decisions that shaped the architecture and points to the Terraform files that implement each one:</p><div class="story-table-wrap"><table><thead><tr><th>Decision</th><th>Value I chose</th><th>Why it matters</th><th>Terraform implementation</th></tr></thead><tbody><tr><td>---</td><td>---</td><td>---</td><td>---</td></tr><tbody><tr><td>Network</td><td>VPC <code>10.20.0.0/16</code>; NAT/public <code>10.20.0.0/24</code>; private admin <code>10.20.10.0/24</code>; private target <code>10.20.20.0/24</code></td><td>Separate routing roles and avoid the existing VPC range</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/network.tf" target="_blank" rel="noopener noreferrer">network.tf</a></td></tr><tbody><tr><td>Outbound access</td><td>One NAT Gateway instead of a NAT instance; S3 Gateway endpoint on private route tables</td><td>Avoid operating another Linux host for general egress; route S3 transfers through the endpoint</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/network.tf" target="_blank" rel="noopener noreferrer">network.tf</a></td></tr><tbody><tr><td>Network access rules</td><td>No inbound rules; outbound HTTPS</td><td>Keep management off public SSH and allow required HTTPS services</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/security-groups.tf" target="_blank" rel="noopener noreferrer">security-groups.tf</a></td></tr><tbody><tr><td>Compute</td><td>Ubuntu 24.04 LTS; <code>t3.small</code> admin and <code>t3.micro</code> target</td><td>Give Ansible a larger controller while keeping the target small</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/ami.tf" target="_blank" rel="noopener noreferrer">ami.tf</a>, <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/compute.tf" target="_blank" rel="noopener noreferrer">compute.tf</a></td></tr><tbody><tr><td>Storage</td><td>Encrypted 20-GiB gp3 roots and separate encrypted 5-GiB target data disk</td><td>Explicit encryption and separation of transfer data from the OS</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/compute.tf" target="_blank" rel="noopener noreferrer">compute.tf</a></td></tr><tbody><tr><td>Metadata</td><td>IMDSv2 required</td><td>Require session tokens for instance metadata requests</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/compute.tf" target="_blank" rel="noopener noreferrer">compute.tf</a></td></tr><tbody><tr><td>Instance identities</td><td>Separate admin/target roles; minimal agent actions and scoped controller permissions</td><td>Limit each server's AWS permissions to its duties</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/iam.tf" target="_blank" rel="noopener noreferrer">iam.tf</a></td></tr><tbody><tr><td>Transfer storage</td><td>Private encrypted S3 bucket, HTTPS-only policy, temporary-object cleanup</td><td>Stage Ansible files and the SFTP public key</td><td><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/s3.tf" target="_blank" rel="noopener noreferrer">s3.tf</a></td></tr></tbody></table></div><p>Although this project focused on hardening EC2 servers, Ansible needed a way to deliver its task files to the private target. I ran Ansible on the admin node and used the <code>amazon.aws.aws_ssm</code> connection plugin to manage the target through Systems Manager rather than SSH. Session Manager provides the command channel, but Ansible also has to transfer the temporary module files that run each task. The plugin stages those files in S3 and passes the target a short-lived presigned URL through SSM so it can download them. That is why the lab includes a private transfer bucket; it is an automation handoff, not the SFTP data store. Files uploaded by the SFTP user remained on the target’s separate encrypted EBS volume. The transfer bucket blocks public access, encrypts stored objects, and expires temporary files after one day.</p><p>I added an S3 gateway endpoint so the private instances could reach the transfer bucket without routing S3 traffic through the NAT Gateway. Its prefix-list route directs S3 requests to the endpoint, while the private route tables send other permitted outbound traffic through the NAT Gateway and its public subnet’s route to the Internet Gateway. The endpoint policy and IAM permissions limit which S3 actions are allowed. I defined the endpoint in <code>network.tf</code> and the bucket and its policy in <code>s3.tf</code>. The <a href="https://docs.ansible.com/projects/ansible/latest/collections/amazon/aws/aws_ssm_connection.html" target="_blank" rel="noopener noreferrer">Ansible SSM connection documentation</a> describes this S3 transfer process.</p><p>The security groups allow outbound TCP 443 for HTTPS traffic, including Systems Manager communication and package downloads. In <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/compute.tf" target="_blank" rel="noopener noreferrer">compute.tf</a>, the bootstrap changes Ubuntu’s package sources to HTTPS to fit that rule. If package updates fail, I check repository URLs and connectivity before considering any broader network access.</p><p>Network reachability alone does not authorize an instance to use Systems Manager, so I next reviewed the IAM permissions needed by the SSM agent. Before writing a narrower instance policy, I inspected AWS’s managed <code>AmazonSSMManagedInstanceCore</code> policy as a baseline. I looked up its metadata, read its active <code>v2</code> document, and summarized its actions:</p><pre class="story-code"><code>aws iam get-policy \
+  --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore \
+  --query 'Policy.{Name:PolicyName,Arn:Arn,DefaultVersion:DefaultVersionId,Updated:UpdateDate}' \
+  --output table \
+  --profile mds-devsecops-lab</code></pre><pre class="story-code"><code>aws iam get-policy-version \
+  --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore \
+  --version-id v2 \
+  --query 'PolicyVersion.Document' \
+  --output json \
+  --profile mds-devsecops-lab</code></pre><pre class="story-code"><code>aws iam get-policy-version \
+  --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore \
+  --version-id v2 \
+  --query 'PolicyVersion.Document.Statement[].{Actions:Action,Resources:Resource}' \
+  --output json \
+  --profile mds-devsecops-lab</code></pre><p>The managed policy included parameter-read, patching, inventory, compliance, and legacy messaging permissions that this lab did not need. I used it as a reference and kept the instance roles to the five SSM channel actions required for Session Manager. My AWS user handled provisioning; the EC2 instances did not need those permissions. I attached these five actions to both instance roles:</p><pre class="story-code"><code>{
+  &quot;Version&quot;: &quot;2012-10-17&quot;,
+  &quot;Statement&quot;: [{
+    &quot;Effect&quot;: &quot;Allow&quot;,
+    &quot;Action&quot;: [
+      &quot;ssm:UpdateInstanceInformation&quot;,
+      &quot;ssmmessages:CreateControlChannel&quot;,
+      &quot;ssmmessages:CreateDataChannel&quot;,
+      &quot;ssmmessages:OpenControlChannel&quot;,
+      &quot;ssmmessages:OpenDataChannel&quot;
+    ],
+    &quot;Resource&quot;: &quot;*&quot;
+  }]
+}</code></pre><p>The S3 transfer process also determined what the admin role needed. It could start an SSM session to the target and use the transfer bucket to stage Ansible’s temporary module files. I restricted its S3 permissions to listing that bucket and reading, writing, and deleting objects within it. The target needed network access to S3 to fetch the files from short-lived presigned URLs, but it did not need its own S3 credentials. The <a href="https://docs.ansible.com/projects/ansible/latest/collections/amazon/aws/aws_ssm_connection.html" target="_blank" rel="noopener noreferrer">Ansible SSM connection documentation</a> describes this transfer flow.</p><p>While I was reviewing the IAM policies, my WSL terminal became unresponsive. The recovery guidance was to try <code>Ctrl+C</code> first, then use this PowerShell command if the terminal remained stuck:</p><pre class="story-code"><code>wsl --shutdown</code></pre><p>This stops WSL on my workstation so I can reopen the terminal; it does not change AWS resources.</p><p><strong>Checkpoint:</strong> Before deployment, I had mapped each resource to its role in the design and limited each AWS identity to the permissions it needed.</p><h3>1.7 I initialized and validated the Terraform configuration</h3><p>Before initializing and validating the Terraform configuration, I set the Region to <code>us-east-1</code>, selected profile <code>mds-devsecops-lab</code>, and reviewed the project variables in <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/variables.tf" target="_blank" rel="noopener noreferrer">variables.tf</a> and <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/terraform.tfvars.example" target="_blank" rel="noopener noreferrer">terraform.tfvars.example</a>. I ran the checks from <code>~/mds-aws-linux-hardening-1b</code> in WSL:</p><pre class="story-code"><code>terraform init
+terraform validate</code></pre><p>Terraform downloaded the signed AWS provider <code>6.69.1</code> and reported <code>Success! The configuration is valid.</code> I then reviewed the planned design—private instances, no inbound security-group rules, encrypted volumes, and scoped instance permissions—because syntax validation alone does not assess those choices.</p><h3>1.8 I deployed the infrastructure and used its identifiers</h3><p>I deployed the lab with Terraform from the original WSL project directory. It created the private admin and target instances, along with the transfer bucket used by SSM and Ansible. <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/outputs.tf" target="_blank" rel="noopener noreferrer">outputs.tf</a> exposes their identifiers.</p><p>The admin node ID was <code>i-0d9cc5ae05f797442</code>, and the SFTP target ID was <code>i-0cce45e09ec35a12a</code>. I used the <code>mds-devsecops-lab</code> profile in <code>us-east-1</code> for the AWS commands that follow. These are the historical IDs from the lab, which I destroyed after the demonstration.</p><p><strong>Checkpoint:</strong> deployment was complete, and I had the instance IDs needed to configure and test access.</p></div></div></section><section class="story-section" id="layer-2"><div class="story-wrap"><div class="story-section-head"><p class="story-index">LAYER 2 / ACCESS + SFTP</p><h2>2. Access management and SSH hardening</h2></div><div class="story-prose"><h3>2.1 I checked Session Manager prerequisites before opening a session</h3><p>With deployment complete and both instance IDs available, I moved from building the infrastructure to checking how I would access the private instances. Since they had no public IPs or inbound SSH rules, I first checked whether Systems Manager could see them. In WSL, I queried the managed-instance list:</p><pre class="story-code"><code>aws ssm describe-instance-information \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --query 'InstanceInformationList[].{InstanceId:InstanceId,PingStatus:PingStatus,Platform:PlatformName,Version:AgentVersion}' \
+  --output table</code></pre><p>Both Ubuntu instances appeared as <code>Online</code> with SSM Agent version <code>3.3.4793.0</code>. That confirmed their agents were connected to Systems Manager. The instance roles and private-subnet egress were part of the Terraform design that enabled this connection.</p><p>I then tried to open a session to the admin node from WSL:</p><pre class="story-code"><code>aws ssm start-session \
+  --target i-0d9cc5ae05f797442 \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><p>The first attempt returned <code>SessionManagerPlugin is not found</code>. The AWS CLI needed the Session Manager plugin installed locally in WSL to open the interactive session. I downloaded and installed AWS's Ubuntu package, then checked that the plugin was available:</p><pre class="story-code"><code>curl -fsSL &quot;https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb&quot; \
+  -o /tmp/session-manager-plugin.deb
+sudo dpkg -i /tmp/session-manager-plugin.deb
+session-manager-plugin --version</code></pre><p>I retried the same <code>aws ssm start-session</code> command. Session Manager returned a session ID, and <code>hostname</code> inside the session returned <code>ip-10-20-10-92</code>, confirming I had reached the admin node. I used the same access method for the target in the next step. This let me manage the private instances without a public IP or inbound SSH rule.</p><h3>2.2 I opened a target session and captured its starting state</h3><p>I kept separate terminals for WSL, the target, and later the admin controller. A command that checks the wrong host can give a perfectly valid but irrelevant answer.</p><p>From a new WSL terminal, I opened an interactive Session Manager connection to the private target using its instance ID and lab profile:</p><pre class="story-code"><code>aws ssm start-session --target i-0cce45e09ec35a12a \
+  --profile mds-devsecops-lab --region us-east-1</code></pre><p>The prompt now belongs to the target EC2.</p><p>The SSM session opens an IAM-authorized shell on the private target. After confirming the prompt belonged to EC2, I checked its hostname, account, OS, kernel, listening ports, and running services:</p><pre class="story-code"><code>hostname
+whoami
+cat /etc/os-release
+uname -r
+sudo ss -lntup
+systemctl list-units --type=service --state=running --no-pager</code></pre><p>My target reported Ubuntu 24.04.5 and an AWS kernel. The checks confirmed I was on the EC2 host and showed its listening services. I had previously mistaken WSL output for target output, so I used the hostname and kernel to verify the machine before interpreting later checks.</p><p>SSH listened on local port 22, alongside resolver and time-service sockets. That inventory showed which programs listened before I changed the account or SSH policy; reachability also depends on AWS network controls.</p><p><strong>Checkpoint:</strong> I identified the target before interpreting its service and firewall output.</p><h3>2.3 I opened the admin node and prepared the Ansible controller</h3><p>With the target's starting state recorded, I moved to the private admin EC2. It would be the Ansible controller: the machine from which I prepared and ran the automation against the target through SSM. Before changing the target, I first needed to prepare that controller. From WSL, I opened the admin node's session:</p><pre class="story-code"><code>aws ssm start-session \
+  --target i-0d9cc5ae05f797442 \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><p>Inside that session, I installed Ansible from Ubuntu's package repository and checked the installed version:</p><pre class="story-code"><code>sudo apt install ansible-core</code></pre><pre class="story-code"><code>ansible --version</code></pre><p>The result was Ansible Core <code>2.16.3</code> using Python <code>3.12.3</code>. I then checked the AWS collection and whether the controller had its own Session Manager plugin. The plugin on WSL could not serve as the admin node's local executable:</p><pre class="story-code"><code>ansible-galaxy collection list amazon.aws
+command -v session-manager-plugin</code></pre><p>The collection was <code>amazon.aws 7.2.0</code>; the plugin-path check returned nothing. I attempted to download AWS's Ubuntu plugin package on the admin node:</p><pre class="story-code"><code>curl -fL --connect-timeout 10 --max-time 60 \
+  https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb \
+  -o /tmp/session-manager-plugin.deb</code></pre><p>The download returned <code>403 Forbidden</code>. The S3 endpoint policy allowed the lab transfer bucket but omitted AWS's plugin-download bucket. I returned to the Terraform directory in WSL and inspected the endpoint configuration:</p><pre class="story-code"><code>grep -n -A70 'resource &quot;aws_vpc_endpoint&quot; &quot;s3&quot;' network.tf</code></pre><p>I edited <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/terraform/network.tf" target="_blank" rel="noopener noreferrer">network.tf</a> to retain the transfer-bucket permissions and add read access to the package and its signature. I opened the file with:</p><pre class="story-code"><code>nano network.tf</code></pre><p>The endpoint block became:</p><pre class="story-code"><code>resource &quot;aws_vpc_endpoint&quot; &quot;s3&quot; {
+  vpc_id            = aws_vpc.lab.id
+  service_name      = &quot;com.amazonaws.${var.aws_region}.s3&quot;
+  vpc_endpoint_type = &quot;Gateway&quot;
+
+  route_table_ids = [
+    aws_route_table.admin_private.id,
+    aws_route_table.target_private.id
+  ]
+
+  policy = jsonencode({
+    Version = &quot;2012-10-17&quot;
+    Statement = [
+      {
+        Effect    = &quot;Allow&quot;
+        Principal = &quot;*&quot;
+        Action = [
+          &quot;s3:ListBucket&quot;,
+          &quot;s3:GetBucketLocation&quot;
+        ]
+        Resource = aws_s3_bucket.ansible_transfer.arn
+      },
+      {
+        Effect    = &quot;Allow&quot;
+        Principal = &quot;*&quot;
+        Action = [
+          &quot;s3:GetObject&quot;,
+          &quot;s3:PutObject&quot;,
+          &quot;s3:DeleteObject&quot;
+        ]
+        Resource = &quot;${aws_s3_bucket.ansible_transfer.arn}/*&quot;
+      },
+      {
+        Effect    = &quot;Allow&quot;
+        Principal = &quot;*&quot;
+        Action    = &quot;s3:GetObject&quot;
+        Resource = [
+          &quot;arn:aws:s3:::session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb&quot;,
+          &quot;arn:aws:s3:::session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb.sig&quot;
+        ]
+      }
+    ]
+  })
+
+  tags = merge(var.common_tags, {
+    Name = &quot;${var.project_name}-s3-endpoint&quot;
+  })
+}</code></pre><p>Still in WSL, I formatted and validated the configuration, then reviewed the proposed change:</p><pre class="story-code"><code>terraform fmt network.tf</code></pre><pre class="story-code"><code>terraform validate</code></pre><pre class="story-code"><code>terraform plan</code></pre><p>The plan showed <code>0 to add, 1 to change, 0 to destroy</code>: an in-place endpoint-policy update. I applied it:</p><pre class="story-code"><code>terraform apply</code></pre><p>The endpoint policy controls S3 traffic from the lab's VPC, not from my local WSL network, so retrying the download from WSL timed out. I reopened the admin node's SSM session and downloaded the package there successfully. Before installing executable software, I also downloaded AWS's signature file. GPG (GNU Privacy Guard) is a tool that verifies digital signatures; I used it with AWS's public signing key to check that the package was signed by AWS and had not been altered. I first checked that GPG was available:</p><pre class="story-code"><code>curl -fL --connect-timeout 10 --max-time 60 -o /tmp/session-manager-plugin.deb.sig https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb.sig</code></pre><pre class="story-code"><code>gpg --version | head -n 1</code></pre><p>GPG reported <code>2.4.4</code>. My first signing-key paste failed with a CRC error, and the two key-server attempts found no key. I resolved this by importing the public signing key directly from AWS's documentation:</p><pre class="story-code"><code>curl -fsSL https://docs.aws.amazon.com/systems-manager/latest/userguide/install-plugin-linux-verify-signature.md | sed -n '/-----BEGIN PGP PUBLIC KEY BLOCK-----/,/-----END PGP PUBLIC KEY BLOCK-----/p' | sed -E 's/^[[:space:]]+//' | gpg --import</code></pre><p>Before trusting that key, I compared its full fingerprint with the AWS-published value:</p><pre class="story-code"><code>gpg --fingerprint 2C4D4AFF6F6757EE</code></pre><p>The fingerprint matched <code>7959 6371 24CE 093A D501 D47A 2C4D 4AFF 6F67 57EE</code>. I then verified the downloaded package's digital signature:</p><pre class="story-code"><code>gpg --verify /tmp/session-manager-plugin.deb.sig /tmp/session-manager-plugin.deb</code></pre><p>GPG returned <code>Good signature</code>. This checked that the package matched the signature made with AWS's signing key, providing authenticity and integrity checks before I installed executable software. I installed the verified package and checked its version:</p><pre class="story-code"><code>sudo dpkg -i /tmp/session-manager-plugin.deb
+session-manager-plugin --version</code></pre><p>The installed version was <code>1.2.896.0</code>. Next, I checked whether Ansible could find its SSM connection plugin:</p><pre class="story-code"><code>ansible-doc -t connection amazon.aws.aws_ssm</code></pre><p>That check exposed a collection-version mismatch: the installed <code>amazon.aws 7.2.0</code> did not provide that connection plugin. I tried the compatible <code>community.aws</code> collection:</p><pre class="story-code"><code>ansible-galaxy collection install community.aws:==9.3.0</code></pre><p>The Galaxy download returned <code>403</code>, so I installed the stable-9 collections from their official GitHub repositories:</p><pre class="story-code"><code>ansible-galaxy collection install 'git+https://github.com/ansible-collections/community.aws.git,stable-9'
+ansible-galaxy collection install 'git+https://github.com/ansible-collections/amazon.aws.git,stable-9'</code></pre><p>I checked each collection separately and opened the connection plugin's documentation:</p><pre class="story-code"><code>ansible-galaxy collection list amazon.aws
+ansible-galaxy collection list community.aws
+ansible-doc -t connection community.aws.aws_ssm</code></pre><p>The user-installed versions were <code>amazon.aws 9.5.2</code> and <code>community.aws 9.3.0</code>. The documentation resolved to <code>community.aws.aws_ssm</code>, which is the connection name I used in the inventory.</p><p>Finally, I checked the Python AWS libraries and plugin path on the admin node:</p><pre class="story-code"><code>python3 -c 'import boto3, botocore; print(&quot;boto3&quot;, boto3.__version__); print(&quot;botocore&quot;, botocore.__version__)'
+command -v session-manager-plugin
+command -v curl</code></pre><p>Both Python libraries reported <code>1.34.46</code>, and the Session Manager plugin resolved to <code>/usr/local/bin/session-manager-plugin</code>. The final curl-path check printed nothing, although the earlier package download had succeeded. I did not treat that output as proof that the target lacked curl.</p><p>The connection also needed curl on the target for S3 transfers. From WSL, I opened the target session:</p><pre class="story-code"><code>aws ssm start-session --target i-0cce45e09ec35a12a --profile mds-devsecops-lab --region us-east-1</code></pre><p>Inside the target session, I checked:</p><pre class="story-code"><code>command -v curl</code></pre><p>It returned <code>/usr/bin/curl</code>. With the controller tools and target dependency checked, I returned to the admin node to configure the inventory.</p><h3>2.4 I configured Ansible to reach the private target</h3><p>With the controller prerequisites checked, I needed an inventory that told Ansible which EC2 instance to manage, which SSM connection to use, and where to stage temporary module files. From my WSL project directory, I first read the transfer bucket name from Terraform's state:</p><pre class="story-code"><code>terraform state show aws_s3_bucket.ansible_transfer</code></pre><p>The bucket was <code>mds-linux-hardening-1b-273517699789-us-east-1</code>. I then opened the admin node's SSM session from WSL:</p><pre class="story-code"><code>aws ssm start-session --target i-0d9cc5ae05f797442 --profile mds-devsecops-lab --region us-east-1</code></pre><p>Inside the <strong>admin node's SSM shell</strong>, I created the working directory and wrote the inventory:</p><pre class="story-code"><code>mkdir -p ~/ansible-project
+
+cat &gt; ~/ansible-project/inventory.ini &lt;&lt;'EOF'
+[sftp_target]
+target ansible_connection=community.aws.aws_ssm ansible_aws_ssm_instance_id=i-0cce45e09ec35a12a ansible_aws_ssm_region=us-east-1 ansible_aws_ssm_bucket_name=mds-linux-hardening-1b-273517699789-us-east-1 ansible_python_interpreter=/usr/bin/python3
+EOF</code></pre><p>The inventory placed the host alias <code>target</code> in the <code>sftp_target</code> group. It selected the target instance, <code>us-east-1</code>, the transfer bucket, and the target's Python interpreter. The original run used <code>community.aws.aws_ssm</code>; the published <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/ansible/inventory/hosts.example.yml" target="_blank" rel="noopener noreferrer">inventory example</a> uses <code>amazon.aws.aws_ssm</code>. The command above preserves the connection name I used in the lab.</p><p>Still in the admin session, I tested whether Ansible could transfer and execute a module on the private target:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini sftp_target -m ansible.builtin.ping -vv</code></pre><p>The result reported <code>target | SUCCESS</code>, <code>&quot;ping&quot;: &quot;pong&quot;</code>, and <code>&quot;changed&quot;: false</code>. This confirmed remote Ansible execution through SSM, including the temporary S3 transfer, without changing the target. Ansible's ping module tests module execution; it does not send an ICMP network ping. AWS access came from the admin node's instance role.</p><p>Before applying changes, I gathered the target's operating-system facts through the same connection:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target -m ansible.builtin.setup -a 'filter=ansible_distribution*'</code></pre><p>The facts identified Ubuntu <code>24.04</code>, release <code>noble</code>, and reported <code>changed: false</code>. I now had a working inventory and confirmation that Ansible was managing the intended operating system.</p><h3>2.5 I prepared the data filesystem and checked the chroot through Ansible</h3><p>Terraform attached a separate encrypted 5-GiB disk to the target. I needed to identify that disk, check whether it already contained a filesystem, and mount it before giving the SFTP account an upload directory. All the following Ansible commands were entered in the <strong>admin node's SSM shell</strong> and ran against <code>target</code>.</p><p>I began with a read-only storage inspection:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.shell \
+  -a 'lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINTS; echo &quot;--- /srv/sftp-data ---&quot;; findmnt --target /srv/sftp-data || true; echo &quot;--- related fstab entries ---&quot;; grep -nE &quot;sftp|nvme|xvd|sd[f-z]&quot; /etc/fstab || true'</code></pre><p>The output identified the 20-GiB root disk as <code>nvme0n1</code> and the separate 5-GiB disk as <code>nvme1n1</code>. The data disk had no filesystem type or mount point, and no related persistent mount entry appeared. I checked it for existing filesystem signatures before formatting:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.shell \
+  -a 'sudo wipefs --no-act /dev/nvme1n1; sudo blkid /dev/nvme1n1 || true'</code></pre><p>The empty signature check agreed with the earlier disk inspection. Having identified the blank data volume, I used Ansible's filesystem module to create ext4:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m community.general.filesystem \
+  -a 'fstype=ext4 dev=/dev/nvme1n1'</code></pre><p>Ansible reported <code>CHANGED</code>. This formatting step applied to the data disk verified in my lab; a new deployment needs its own device checks before using a formatting command.</p><p>I then read the filesystem's UUID so the persistent mount would not depend on its NVMe device name:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.command \
+  -a 'blkid /dev/nvme1n1'</code></pre><p>The filesystem was ext4 with UUID <code>440e974b-49b2-4f0c-8675-28cb69d6bbe4</code>. I used that UUID with Ansible's mount module to manage the live mount and its <code>/etc/fstab</code> entry:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.posix.mount \
+  -a 'path=/srv/sftp-data src=UUID=440e974b-49b2-4f0c-8675-28cb69d6bbe4 fstype=ext4 opts=defaults,nofail state=mounted'</code></pre><p>The returned result was <code>SUCCESS</code>, with <code>changed: false</code> and <code>boot: yes</code>: Ansible found the requested mount and persistent entry already in place. The <code>nofail</code> option allowed the server to boot if the data disk was unavailable. I verified the active filesystem and saved entry:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.shell \
+  -a 'findmnt --target /srv/sftp-data; df -hT /srv/sftp-data; grep -F &quot;UUID=440e974b-49b2-4f0c-8675-28cb69d6bbe4&quot; /etc/fstab'</code></pre><p>The result showed <code>/dev/nvme1n1</code> mounted as ext4 at <code>/srv/sftp-data</code>, with 4.9 GiB total and about 4.6 GiB available. The matching UUID entry used <code>defaults,nofail</code>. These identifiers belong to the original lab.</p><p>This mount point would also become the <strong>chroot root</strong>: the SFTP account would see it as <code>/</code>. A chroot confines the account's filesystem view to this directory, so paths such as the server's real <code>/etc</code> are outside the SFTP user's view. That matters here because the account only needs to transfer files; confining it limits access to other parts of the host if its key or session is misused. OpenSSH also requires the chroot root and its parent paths to be owned by root and not writable by the restricted account. I checked those ownership and permission requirements before creating a separate writable child directory:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.command \
+  -a 'stat -c &quot;%U:%G %a %n&quot; /srv/sftp-data'</code></pre><p>The result was:</p><pre class="story-code"><code>target | CHANGED | rc=0 &gt;&gt;
+root:root 755 /srv/sftp-data</code></pre><p>That result shows <code>/srv/sftp-data</code> was owned by <code>root:root</code> with mode <code>755</code>, so the restricted account could not write to the chroot root. This was a read-only <code>stat</code> check; Ansible's <code>CHANGED</code> label did not mean it modified the directory.</p><p>Next, I checked whether the SFTP group, account, and upload directory already existed:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.shell \
+  -a 'getent group sftp-only || true; getent passwd sftpdata || true; test -d /srv/sftp-data/upload &amp;&amp; stat -c &quot;%U:%G %a %n&quot; /srv/sftp-data/upload || echo &quot;/srv/sftp-data/upload does not exist&quot;'</code></pre><p>This returned no text, which did not give me a clear result for each item. Still in the admin node's SSM shell, I reran it through Ansible so each test printed its own status:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.shell \
+  -a 'if getent group sftp-only; then echo &quot;sftp-only group exists&quot;; else echo &quot;sftp-only group absent&quot;; fi; if getent passwd sftpdata; then echo &quot;sftpdata account exists&quot;; else echo &quot;sftpdata account absent&quot;; fi; if test -d /srv/sftp-data/upload; then stat -c &quot;%U:%G %a %n&quot; /srv/sftp-data/upload; else echo &quot;/srv/sftp-data/upload absent&quot;; fi'</code></pre><p>The second result was:</p><pre class="story-code"><code>target | CHANGED | rc=0 &gt;&gt;
+sftp-only group absent
+sftpdata account absent
+/srv/sftp-data/upload absent</code></pre><p>These Ansible shell tasks only queried the target. Their <code>CHANGED</code> label was the module's status, not evidence that the checks created a group, account, or directory. Having confirmed that all three were absent, I could create them in the next step while keeping the chroot root owned by <code>root</code>.</p><h3>2.6 I created the SFTP account and upload directory with Ansible</h3><p>I used Ansible ad-hoc commands from the admin node to prepare the target account before applying the full SSH configuration. The <code>-i</code> option points to the admin node’s inventory, <code>target</code> selects the managed host, <code>-b</code> enables privilege escalation, and <code>-m</code> selects the Ansible module.</p><p>My first group-creation attempt ran in WSL, where the inventory path resolved to <code>/home/devsecops/ansible-project/inventory.ini</code>. Ansible could not find it, skipped the target, and made no changes. I returned to the admin node's SSM session, where the inventory was under <code>/home/ssm-user/ansible-project/</code>.</p><p>After the Ansible checks showed the group, account, and upload directory were absent, I created the dedicated group from the admin node's SSM shell:</p><pre class="story-code"><code>ansible -i ~/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.group \
+  -a 'name=sftp-only state=present'</code></pre><p>Ansible returned <code>CHANGED</code> and created <code>sftp-only</code> with GID <code>1002</code>. I then created <code>sftpdata</code> as a non-interactive account, set <code>sftp-only</code> as its primary group, created its home directory, and locked its password:</p><pre class="story-code"><code>ansible -i /home/ssm-user/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.user \
+  -a 'name=sftpdata group=sftp-only shell=/usr/sbin/nologin create_home=yes password_lock=true state=present'</code></pre><p>Ansible returned <code>CHANGED</code>; the account had UID <code>1002</code>, primary group GID <code>1002</code>, home <code>/home/sftpdata</code>, and shell <code>/usr/sbin/nologin</code>. The locked password prevents password-based login; the later SSH policy allows the dedicated public key for SFTP access.</p><p>Next, I created the writable upload directory inside the chroot and set its owner, group, and mode:</p><pre class="story-code"><code>ansible -i /home/ssm-user/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.file \
+  -a 'path=/srv/sftp-data/upload state=directory owner=sftpdata group=sftp-only mode=0750'</code></pre><p>Ansible returned <code>CHANGED</code> for <code>/srv/sftp-data/upload</code>, owned by <code>sftpdata:sftp-only</code> with mode <code>0750</code>. The SFTP account can write inside this directory; the chroot root remains root-owned and not writable by the account.</p><h3>2.7 I created the SFTP key on my WSL workstation</h3><p>The private key stays on my client; only its matching public key is installed on the target. I checked that the key filename was unused before generating an Ed25519 key pair, which avoids overwriting an existing key:</p><pre class="story-code"><code>key=&quot;$HOME/.ssh/mds-linux-hardening-1b-sftpdata&quot;
+if [ -e &quot;$key&quot; ] || [ -e &quot;$key.pub&quot; ]; then
+  echo &quot;Key file already exists; stopping to avoid overwriting it.&quot;
+else
+  ssh-keygen -t ed25519 -a 64 -f &quot;$key&quot; \
+    -C &quot;sftpdata@mds-linux-hardening-1b&quot;
+fi</code></pre><p>Still in WSL, I displayed the public key's fingerprint so I could compare it after transfer:</p><pre class="story-code"><code>ssh-keygen -lf &quot;$HOME/.ssh/mds-linux-hardening-1b-sftpdata.pub&quot;</code></pre><p>I uploaded only the public key to the private transfer bucket, requesting S3-managed encryption:</p><pre class="story-code"><code>aws s3 cp \
+  &quot;$HOME/.ssh/mds-linux-hardening-1b-sftpdata.pub&quot; \
+  &quot;s3://mds-linux-hardening-1b-273517699789-us-east-1/sftpdata/sftpdata.pub&quot; \
+  --sse AES256 \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><p>Back in the admin node's SSM session, I used Python's AWS SDK and the instance role to download the public key and display its fingerprint. This did not require AWS CLI on the admin node:</p><pre class="story-code"><code>python3 -c 'import boto3; boto3.client(&quot;s3&quot;, region_name=&quot;us-east-1&quot;).download_file(&quot;mds-linux-hardening-1b-273517699789-us-east-1&quot;, &quot;sftpdata/sftpdata.pub&quot;, &quot;/tmp/sftpdata.pub&quot;); print(&quot;Downloaded public key to /tmp/sftpdata.pub&quot;)' \
+  &amp;&amp; ssh-keygen -lf /tmp/sftpdata.pub</code></pre><p>I then installed the staged public key for <code>sftpdata</code> through Ansible. The module managed the target's key file and its parent directory:</p><pre class="story-code"><code>pubkey=$(cat /tmp/sftpdata.pub) &amp;&amp;
+ansible -i /home/ssm-user/ansible-project/inventory.ini target \
+  -b -m ansible.posix.authorized_key \
+  -a &quot;user=sftpdata key='$pubkey' state=present path=/home/sftpdata/.ssh/authorized_keys manage_dir=true&quot;</code></pre><p>The private key remained on WSL throughout.</p><h3>2.8 I checked the chroot permissions and installed public key</h3><p>Before changing SSH access, I checked the target's chroot path, home directory, and key-file permissions from the admin node's SSM session:</p><pre class="story-code"><code>ansible -i /home/ssm-user/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.shell \
+  -a 'stat -c &quot;%U:%G %a %n&quot; / /srv /srv/sftp-data /home/sftpdata /home/sftpdata/.ssh /home/sftpdata/.ssh/authorized_keys; echo &quot;--- installed key fingerprint ---&quot;; ssh-keygen -lf /home/sftpdata/.ssh/authorized_keys'</code></pre><p>The chroot path passed the ownership check. OpenSSH requires the chroot directory and its parents to be root-owned and not writable by the restricted user. That is why <code>/srv/sftp-data</code> remained <code>root:root 0755</code>, while <code>/srv/sftp-data/upload</code> belonged to <code>sftpdata:sftp-only</code> with mode <code>0750</code>.</p><p>The output did not show the installed key's fingerprint, so I could not yet conclude that the correct key had arrived. I compared the staged and installed files by size and fingerprint:</p><pre class="story-code"><code>echo &quot;--- Admin staged key ---&quot;
+wc -c /tmp/sftpdata.pub
+ssh-keygen -lf /tmp/sftpdata.pub
+echo &quot;--- Target authorized key ---&quot;
+ansible -i /home/ssm-user/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.shell \
+  -a 'wc -c /home/sftpdata/.ssh/authorized_keys; ssh-keygen -lf /home/sftpdata/.ssh/authorized_keys'</code></pre><p>The target file was 113 bytes, but the returned output still did not establish a matching fingerprint. I followed up with a SHA-256 comparison:</p><pre class="story-code"><code>echo &quot;--- staged public key hash ---&quot;
+sha256sum /tmp/sftpdata.pub
+echo &quot;--- target authorized_keys hash ---&quot;
+ansible -i /home/ssm-user/ansible-project/inventory.ini target \
+  -b -m ansible.builtin.command \
+  -a 'sha256sum /home/sftpdata/.ssh/authorized_keys'</code></pre><p>These checks were intended to verify the public key's integrity between the controller and target. I did not have a confirmed matching-hash result from this check. I therefore included key validation and an explicit fingerprint assertion in the combined playbook, so SSH configuration would not proceed with an unverified key.</p><h3>2.9 I applied and verified the SSH restrictions with one Ansible playbook</h3><p>I brought the account, directory permissions, public key, and SSH settings into <code>configure-sftp.yml</code> on the admin node. The playbook first validates the staged key and checks the mounted volume's UUID. It then installs the key and asserts that its fingerprint matches before applying SSH restrictions.</p><p>The global settings go in <code>/etc/ssh/sshd_config.d/00-project-hardening.conf</code>. The SFTP group's <code>Match</code> block goes at the end of <code>/etc/ssh/sshd_config</code>. This keeps the group-specific context from affecting directives that follow Ubuntu's earlier include statement.</p><p>I created the playbook in the admin node's SSM session:</p><pre class="story-code"><code>cat &gt; ~/ansible-project/configure-sftp.yml</code></pre><p>I pasted the contents of <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/ansible/playbooks/configure-sftp.yml" target="_blank" rel="noopener noreferrer">configure-sftp.yml</a> into that file on the admin node. The linked YAML shows every task and handler.</p><p>The account receives file-transfer access inside its chroot, with <code>/upload</code> as its starting directory. Root SSH login, password authentication, and unnecessary forwarding are disabled. The playbook validates the SSH configuration and checks the effective settings for <code>sftpdata</code> before its handler restarts SSH.</p><p>Still on the admin node, I checked the playbook's syntax and then ran it:</p><pre class="story-code"><code>ansible-playbook -i ~/ansible-project/inventory.ini \
+  ~/ansible-project/configure-sftp.yml --syntax-check &amp;&amp;
+ansible-playbook -i ~/ansible-project/inventory.ini \
+  ~/ansible-project/configure-sftp.yml</code></pre><p>The first run stopped at the task delegated to the controller. Ansible tried to create temporary files under <code>/root/.ansible/tmp</code>, which <code>ssm-user</code> could not write to. The recap was <code>ok=0 changed=0 unreachable=1 failed=0</code>; the target had not been changed.</p><p>I created a private temporary directory for <code>ssm-user</code> and selected it for Ansible's local and remote temporary files in that session:</p><pre class="story-code"><code>mkdir -p /home/ssm-user/.ansible/tmp
+chmod 700 /home/ssm-user/.ansible/tmp
+
+export ANSIBLE_LOCAL_TEMP=/home/ssm-user/.ansible/tmp
+export ANSIBLE_REMOTE_TEMP=/home/ssm-user/.ansible/tmp</code></pre><p>I then reran the same playbook using the full inventory and playbook paths:</p><pre class="story-code"><code>ansible-playbook \
+  -i /home/ssm-user/ansible-project/inventory.ini \
+  /home/ssm-user/ansible-project/configure-sftp.yml</code></pre><p>The run completed with <code>ok=17 changed=3 unreachable=0 failed=0</code>. The key-fingerprint assertion, volume check, and effective SSH restrictions passed, and SSH restarted successfully. This verified the access configuration before I tested it as the SFTP user.</p><p>The auditd, UFW, and network-sysctl changes came later during the operating-system checks in Layer 3.</p><h3>2.10 I tested SFTP access through the SSM tunnel</h3><p>After the playbook passed, I returned to WSL to test the actual access path. I opened a tunnel from local port <code>2222</code> to the target's SSH port <code>22</code> and left that terminal running:</p><pre class="story-code"><code>aws ssm start-session \
+  --target i-0cce45e09ec35a12a \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters '{&quot;portNumber&quot;:[&quot;22&quot;],&quot;localPortNumber&quot;:[&quot;2222&quot;]}' \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><p>In a second WSL terminal, I connected as <code>sftpdata</code> with the dedicated private key:</p><pre class="story-code"><code>sftp -P 2222 \
+  -i &quot;$HOME/.ssh/mds-linux-hardening-1b-sftpdata&quot; \
+  -o IdentitiesOnly=yes \
+  sftpdata@127.0.0.1</code></pre><p>The client reported <code>Connected to 127.0.0.1.</code> and displayed its <code>sftp&gt;</code> prompt. I entered these checks to see where the account started and whether it could move outside the chroot:</p><pre class="story-code"><code>sftp&gt; pwd
+Remote working directory: /upload
+sftp&gt; ls -ld /
+ls: Invalid flag -d
+sftp&gt; ls -ld /upload
+ls: Invalid flag -d
+sftp&gt; cd /
+sftp&gt; cd ..
+sftp&gt; pwd
+Remote working directory: /
+sftp&gt; ls /etc
+Can't ls: &quot;/etc&quot; not found</code></pre><p>The <code>-d</code> listing option was invalid in this SFTP client, so those two lines did not tell me anything about directory permissions. The successful connection, starting directory <code>/upload</code>, inability to move above <code>/</code>, and absence of <code>/etc</code> were the observed confinement results.</p><p>I had accepted the server's host key before independently comparing its fingerprint; that comparison was completed later. Layer 4 shows the file-transfer integrity check, denied write at the chroot root, refused shell command, and the <code>bye</code> command that ended the SFTP session.</p></div></div></section><section class="story-section" id="layer-3"><div class="story-wrap"><div class="story-section-head"><p class="story-index">LAYER 3 / LINUX HARDENING</p><h2>3. Linux operating system hardening</h2></div><div class="story-prose"><p>An AWS network boundary controls reachability, while Linux controls what happens on the machine. I inspected the OS controls and applied the missing settings in the target SSM session. The commands and outputs below follow those checks and manual corrections.</p><p>I ran every command in this layer inside the target's SSM session. Whenever I returned to a terminal, I started with <code>hostname</code> to confirm which machine I was using; earlier, I had mistaken WSL output for EC2 output.</p><h3>3.1 I checked package updates and reboot status</h3><p>Keeping the target patched is part of hardening because known software flaws can remain exploitable even after access controls are in place. Earlier in the lab, I used Ansible from the admin node to apply safe package upgrades to the target:</p><pre class="story-code"><code>ansible-playbook -i ~/ansible-project/inventory.ini \
+  ~/ansible-project/update-packages.yml</code></pre><p>The <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/ansible/playbooks/update-packages.yml" target="_blank" rel="noopener noreferrer">update playbook</a> upgraded 12 packages. Ubuntu deferred <code>cloud-init</code>, <code>tmux</code>, <code>ubuntu-pro-client</code>, and <code>ubuntu-pro-client-l10n</code> because of phased updates. I left those four for Ubuntu's staged rollout instead of forcing them to install.</p><p>Later, during my target-side review, I confirmed which machine I was checking and looked at the updates that remained:</p><pre class="story-code"><code>hostname
+apt list --upgradable 2&gt;/dev/null</code></pre><p>The output listed those same four packages, confirming they were still pending after the safe upgrade. I then checked whether the target required a reboot:</p><pre class="story-code"><code>if [ -f /var/run/reboot-required ]; then
+  cat /var/run/reboot-required
+else
+  echo 'No reboot is currently required'
+fi</code></pre><p>My check reported that no reboot was required.</p><p><strong>Checkpoint:</strong> I confirmed the target's identity, the four updates still deferred by Ubuntu, and that no reboot was pending. If your target requests a reboot, complete and verify it before treating later checks as final.</p><h3>3.2 I checked AppArmor and automatic update scheduling</h3><p>AppArmor is Ubuntu's application security system. It uses profiles to restrict what a program can access, such as files, capabilities, and system resources, adding a boundary beyond ordinary Linux ownership and permissions. In this lab, the target runs management and SFTP services; confinement can limit what a process may do if it is misconfigured or compromised. It complements the SFTP chroot and file permissions, which restrict the transfer account's view and write access.</p><p>I checked whether AppArmor starts at boot and was running, then inspected which profiles were loaded and enforcing. A running service alone does not show which programs are actually confined.</p><pre class="story-code"><code>systemctl is-enabled apparmor
+systemctl is-active apparmor
+sudo aa-status</code></pre><p>I also checked the installed package versions, including whether the utilities needed for <code>aa-status</code> were present:</p><pre class="story-code"><code>dpkg-query -W -f='${Status} ${Version}\n' apparmor apparmor-utils</code></pre><p>AppArmor was installed; <code>apparmor-utils</code> was not installed.</p><p>My results were <code>enabled</code> and <code>active</code>, with 122 profiles loaded and 26 enforcing. <code>chronyd</code> and <code>rsyslogd</code> were among the enforced processes. The SSM Agent's profile was in complain mode. I read those actual states instead of assuming every process was confined because the service ran.</p><p>The service checks show whether unattended upgrades start at boot and are running now; the log shows their recent activity and allowed package origins. I checked these together:</p><pre class="story-code"><code>systemctl is-enabled unattended-upgrades
+systemctl is-active unattended-upgrades
+sudo tail -n 30 /var/log/unattended-upgrades/unattended-upgrades.log</code></pre><p>My service was enabled and active. Its log showed allowed Ubuntu Noble/security origins and no packages eligible at that particular run. I also reviewed the pasted allowed-origins configuration; the log is evidence of the run at that time.</p><p>This check looks for an automatic-reboot setting in APT's effective configuration:</p><pre class="story-code"><code>sudo apt-config dump | grep -i 'Unattended-Upgrade::Automatic-Reboot'</code></pre><p>That query returned no matching setting. The separate reboot-required check reported that no reboot was currently required.</p><p>The unattended-upgrades log confirmed a run, and I left the existing configuration in place.</p><p><strong>Checkpoint:</strong> I confirmed the actual AppArmor enforcement state, unattended-update configuration, and recent log activity.</p><h3>3.3 I checked the host firewall, then verified management still worked</h3><p>Security groups filter traffic at the AWS boundary. UFW provides a host firewall policy on Ubuntu. I wanted default-deny incoming traffic, while allowing outbound traffic needed for updates and management. The effective outbound path still has to satisfy the AWS security group.</p><p>First I inspected the current state: <code>ufw status</code> shows the host firewall policy, and <code>ss</code> lists local listening services. I checked these before enabling the firewall so I knew the existing policy and services.</p><pre class="story-code"><code>sudo ufw status verbose
+sudo ufw status numbered
+sudo ss -lntup</code></pre><p>Before enabling UFW, I inspected the current IPv4 and IPv6 packet-filter policies. Both checks initially showed whether input, forwarding, and output were accepted:</p><pre class="story-code"><code>sudo iptables -S
+sudo ip6tables -S</code></pre><p>Both outputs showed <code>ACCEPT</code> policies for INPUT, FORWARD, and OUTPUT.</p><p>Before changing the firewall, I confirmed that my SSM session to the target was working. Because I managed the server through SSM, I did not need to allow inbound SSH. On a host managed through SSH, I would add the SSH allow rule before enabling a default-deny firewall so I would not lock out my own connection.</p><pre class="story-code"><code>sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw --force enable
+sudo ufw status verbose</code></pre><p><strong>Problem I encountered:</strong> I accidentally pasted <code>ufw status numbered</code> together with <code>IPV6=yes</code>, which caused a syntax error. I reran the status command by itself. Earlier, <code>ufw: command not found</code> came from WSL rather than the target; I switched to the target terminal instead of installing or configuring the firewall in the wrong environment.</p><p>After enabling UFW, it reported <code>active</code>. I opened a fresh target SSM session and ran <code>hostname</code>; it returned <code>ip-10-20-20-177</code>, confirming that SSM management still worked with the firewall enabled.</p><h3>3.4 I verified auditd, then loaded rules before testing events</h3><p>Auditd is Linux's audit service: it records configured system activity so I can review security-relevant changes after they happen. For this server, I wanted to watch changes to user and group files, sudo rules, SSH settings, and UFW configuration. Before adding those audit rules, I checked whether the auditd package was installed, whether the service was enabled at startup, and whether it was running now:</p><pre class="story-code"><code>dpkg-query -W -f='${Status} ${Version}\n' auditd
+systemctl is-enabled auditd
+systemctl is-active auditd</code></pre><p><strong>If it is missing</strong>, complete installation before enabling it:</p><pre class="story-code"><code>sudo apt install auditd audispd-plugins
+sudo systemctl enable --now auditd
+systemctl is-enabled auditd
+systemctl is-active auditd</code></pre><p>My first attempt to enable <code>auditd</code> failed because I had not installed the package, so the <code>auditd.service</code> unit did not exist. I installed the daemon and its plugins, then enabled and started the service in one step:</p><pre class="story-code"><code>sudo apt install auditd audispd-plugins
+sudo systemctl enable --now auditd
+systemctl is-enabled auditd
+systemctl is-active auditd</code></pre><p>The install command added the audit service and plugins. <code>enable --now</code> set the service to start at boot and started it immediately; the final checks confirmed it was <code>enabled</code> and <code>active</code>. With auditd running, I checked the audit subsystem's status and the rules currently loaded in the kernel. <code>auditctl -s</code> reports whether auditing is enabled and whether events have been lost, while <code>auditctl -l</code> lists the active rules:</p><pre class="story-code"><code>sudo auditctl -s
+sudo auditctl -l</code></pre><p>The active audit rules were initially empty, so I added persistent watches for account files, sudo policy, SSH configuration, and UFW. In each line, <code>-w</code> selects a path, <code>-p wa</code> watches writes and attribute changes, and <code>-k</code> assigns a searchable event key:</p><pre class="story-code"><code>-w /etc/passwd -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/sudoers -p wa -k privileged-access
+-w /etc/sudoers.d -p wa -k privileged-access
+-w /etc/ssh/sshd_config -p wa -k ssh-config
+-w /etc/ssh/sshd_config.d -p wa -k ssh-config
+-w /etc/ufw -p wa -k firewall</code></pre><p>I checked the saved rule file, loaded the rules into the running kernel, then verified the active list and audit status before generating a test event:</p><pre class="story-code"><code>sudo augenrules --check
+sudo augenrules --load
+sudo auditctl -l
+sudo auditctl -s</code></pre><p>After loading, <code>auditctl -l</code> showed the nine watches. The <code>identity</code> key grouped account-file events and <code>privileged-access</code> grouped sudo configuration; the other keys identified SSH and firewall changes. The status check later showed zero lost events and a backlog limit of 8192.</p><p><strong>Problem I encountered:</strong> pasting <code>auditctl -s</code> twice onto one line produced “Too many options.” Running one clean status command fixed that input error. The separate status fields matter: <code>enabled 1</code> describes auditing state, while <code>lost 0</code> indicates no events lost at that check.</p><p>Next I inspected the log-retention settings, so the audit output would not grow without bounds:</p><p>My policy was:</p><pre class="story-code"><code>flush = INCREMENTAL_ASYNC
+freq = 50
+max_log_file = 8
+num_logs = 5
+max_log_file_action = ROTATE
+space_left = 75
+space_left_action = SYSLOG
+admin_space_left = 50
+admin_space_left_action = SUSPEND
+disk_full_action = SUSPEND
+disk_error_action = SUSPEND</code></pre><p>The 8-MiB file limit and five-log rotation keep a bounded local history.</p><p>These settings control how often audit data is flushed, the log size and rotation count, and the actions taken when disk space is low or a write fails. The low-space/error actions define when logging warns or suspends; they do not provide central retention. These are the settings I inspected, not proof that I changed every one of them.</p><p>With the daemon and rules ready, I made a harmless test change: <code>touch</code> creates a temporary file under the watched firewall directory, <code>rm</code> deletes it, and <code>ausearch</code> looks for the corresponding audit events.</p><pre class="story-code"><code>sudo touch /etc/ufw/.audit-lab-test
+sudo rm /etc/ufw/.audit-lab-test</code></pre><p>I found creation and deletion records for the exact test path, with <code>touch</code> and <code>rm</code> in the process data and <code>key=firewall</code>. The earlier <code>CONFIG_CHANGE</code> event only showed that I added the rule; the later file events proved it captured activity.</p><p>For other watched configuration changes, I can use these focused queries:</p><p>Each <code>ausearch</code> command filters events by the identity, privileged-access, or SSH key. <code>ls</code> shows the audit log files and their sizes; <code>augenrules --check</code> checks that the saved rule files are consistent.</p><pre class="story-code"><code>sudo ausearch -k identity -ts today -i
+sudo ausearch -k privileged-access -ts today -i
+sudo ausearch -k ssh-config -ts today -i
+sudo ls -lh /var/log/audit/
+sudo augenrules --check</code></pre><p><code>-i</code> interprets numeric fields. My SSM-session events had <code>auid=unset</code>; that means these records did not identify the human IAM caller. I would correlate them with AWS session records for that attribution. The watches record operations and metadata, not full file contents or a complete SFTP transcript.</p><p><strong>Checkpoint:</strong> auditd is active, all intended watches are loaded, and an actual create/delete test produced the expected events.</p><h3>3.5 I inspected kernel settings before applying and rechecking corrections</h3><p>After confirming that auditd captured the test changes, I moved from monitoring host activity to checking the kernel settings that shape process and network behavior. I used <code>sysctl</code> to inspect the current values before changing anything. Because this machine only served SFTP, it did not need to route packets or advertise alternate network routes.</p><pre class="story-code"><code>sudo sysctl kernel.randomize_va_space kernel.dmesg_restrict kernel.kptr_restrict \
+  fs.protected_hardlinks fs.protected_symlinks net.ipv4.ip_forward \
+  net.ipv4.conf.all.send_redirects net.ipv4.conf.default.send_redirects \
+  net.ipv4.conf.ens5.send_redirects net.ipv4.conf.all.accept_source_route \
+  net.ipv4.conf.default.accept_source_route net.ipv4.conf.ens5.accept_source_route</code></pre><p>My initial inspection found <code>send_redirects</code> and <code>accept_source_route</code> still enabled in the default/interface settings.</p><p>I saved the outgoing-redirect settings in a persistent sysctl file. The quoted heredoc writes the values literally, and <code>sysctl -p</code> applies them to the running kernel:</p><pre class="story-code"><code>sudo tee /etc/sysctl.d/99-linux-hardening-network.conf &gt;/dev/null &lt;&lt;'EOF'
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.conf.ens5.send_redirects = 0
+EOF
+sudo sysctl -p /etc/sysctl.d/99-linux-hardening-network.conf</code></pre><p>The manual block replaced the whole named file, while the playbook writes additional host settings to the same path. On a playbook-managed rebuild, inspect its complete file and apply that instead of replacing it with this shorter historical block.</p><p>I subsequently corrected source-route acceptance too. The <code>all</code>, <code>default</code>, and <code>ens5</code> values read back as zero. I checked the live kernel values:</p><pre class="story-code"><code>sudo sysctl -p /etc/sysctl.d/99-linux-hardening-network.conf
+sudo sysctl \
+  kernel.randomize_va_space kernel.dmesg_restrict kernel.kptr_restrict \
+  fs.protected_hardlinks fs.protected_symlinks \
+  net.ipv4.ip_forward \
+  net.ipv4.conf.all.accept_redirects \
+  net.ipv4.conf.default.accept_redirects \
+  net.ipv4.conf.all.send_redirects \
+  net.ipv4.conf.default.send_redirects \
+  net.ipv4.conf.ens5.send_redirects \
+  net.ipv4.conf.all.accept_source_route \
+  net.ipv4.conf.default.accept_source_route \
+  net.ipv4.conf.ens5.accept_source_route \
+  net.ipv4.conf.all.rp_filter net.ipv4.conf.ens5.rp_filter \
+  net.ipv4.tcp_syncookies \
+  net.ipv6.conf.all.accept_redirects \
+  net.ipv6.conf.all.accept_source_route</code></pre><p>My corrected <code>all</code>, <code>default</code>, and <code>ens5</code> redirect/source-route settings read back as <code>0</code>.</p><p>The live-value check reloaded the saved file and read back kernel, filesystem, IPv4, and IPv6 controls. I checked both the <code>all</code> and interface/default values because they can differ. The resulting values and purposes were:</p><div class="story-table-wrap"><table><thead><tr><th>Setting</th><th>Recorded value</th><th>Intended effect</th></tr></thead><tbody><tr><td>---</td><td>---:</td><td>---</td></tr><tbody><tr><td><code>kernel.randomize_va_space</code></td><td><code>2</code></td><td>Enables full address-space layout randomization for supported mappings</td></tr><tbody><tr><td><code>kernel.dmesg_restrict</code></td><td><code>1</code></td><td>Restricts access to kernel logs that can reveal sensitive system details</td></tr><tbody><tr><td><code>kernel.kptr_restrict</code></td><td><code>1</code></td><td>Reduces exposure of kernel pointer addresses through proc interfaces</td></tr><tbody><tr><td><code>fs.protected_hardlinks</code>, <code>fs.protected_symlinks</code></td><td><code>1</code></td><td>Add ownership checks against unsafe hard-link and symlink patterns in sticky directories</td></tr><tbody><tr><td><code>net.ipv4.ip_forward</code></td><td><code>0</code></td><td>Prevents this host from routing IPv4 packets between interfaces</td></tr><tbody><tr><td>IPv4 <code>accept_redirects</code></td><td><code>0</code></td><td>Ignores redirects that could alter a host's routing behavior</td></tr><tbody><tr><td>IPv4 <code>send_redirects</code></td><td><code>0</code></td><td>Does not advertise alternate routes to other hosts</td></tr><tbody><tr><td>IPv4 <code>accept_source_route</code></td><td><code>0</code></td><td>Rejects packets whose source specifies a route through the network</td></tr><tbody><tr><td><code>net.ipv4.conf.*.rp_filter</code></td><td><code>2</code></td><td>Uses loose reverse-path validation; this is more tolerant of asymmetric routes than strict mode <code>1</code></td></tr><tbody><tr><td><code>net.ipv4.tcp_syncookies</code></td><td><code>1</code></td><td>Enables SYN-cookie protection when the kernel's SYN backlog is under pressure</td></tr><tbody><tr><td>IPv6 redirect/source-route acceptance</td><td><code>0</code></td><td>Disables the corresponding IPv6 route-control behaviors</td></tr></tbody></table></div><p><strong>Checkpoint:</strong> the saved configuration and live values agree. <code>rp_filter=2</code> is loose mode; I retained it for the routing design rather than blindly changing it to strict mode. I would review network assumptions again for a VPN or asymmetric-routing deployment.</p><h3>3.6 I reviewed service health and logs after the changes</h3><p>I checked for failed services, confirmed <code>rsyslog</code> was active, measured journal storage, and reviewed warnings since the start of the day:</p><pre class="story-code"><code>systemctl --failed --no-pager
+sudo systemctl is-active rsyslog
+sudo journalctl --disk-usage
+sudo journalctl -p warning --since today --no-pager</code></pre><p>My checks found no failed units, <code>rsyslog</code> was active, and the systemd journal used 38.3 MiB. The warning output included boot-time virtual-hardware notices, a clock correction, IRQ-affinity messages, and a UFW block. In context, the UFW entry showed a denied packet, not accepted SFTP traffic.</p><p>The kernel also reported MDS/MMIO CPU notices.</p><p>These files show the kernel's current status for two CPU vulnerability mitigations; I checked the guest's reported state. I inspected the guest status with:</p><pre class="story-code"><code>cat /sys/devices/system/cpu/vulnerabilities/mds
+cat /sys/devices/system/cpu/vulnerabilities/mmio_stale_data</code></pre><p>The guest reported attempted buffer clearing, no microcode, and unknown SMT host state. That output describes the guest's view and does not establish the state of AWS's underlying host. This inspection did not require changing SSH or firewall rules.</p><p><strong>Checkpoint:</strong> I have reviewed host health, the evidence from each control, and any remaining messages. I can now test the actual file-transfer workflow.</p></div></div></section><section class="story-section" id="layer-4"><div class="story-wrap"><div class="story-section-head"><p class="story-index">LAYER 4 / VALIDATION + CLEANUP</p><h2>4. Validation and cleanup</h2></div><div class="story-prose"><h3>4.1 I obtained the server fingerprint before trusting the SFTP connection</h3><p>Before transferring the test file, I verified the server's identity over the SSM session I had already established. The <strong>client key</strong> I configured earlier authenticates the SFTP user to the server; the server's <strong>host key</strong> lets the client confirm it has reached the intended server. Checking the host-key fingerprint through SSM gave me a trusted value to compare with the fingerprint presented over the SFTP tunnel.</p><p>I used <code>ssh-keygen</code> to print the target's public host-key fingerprint:</p><pre class="story-code"><code>sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub -E sha256</code></pre><p>I reached the target's SFTP service through local port <code>2222</code> and compared the saved host-key fingerprint with the target fingerprint. The transfer and shell-denial commands follow below.</p><h3>4.2 I uploaded and downloaded the text file, then compared its hashes</h3><p>At the <code>sftp&gt;</code> prompt in WSL, I created a small local test file, uploaded it to the chroot's <code>/upload</code> directory, downloaded it under a second name, and compared SHA-256 hashes:</p><pre class="story-code"><code>sftp&gt; !printf 'SFTP hardening lab transfer test\n' &gt; /tmp/mds-sftp-test.txt
+sftp&gt; put /tmp/mds-sftp-test.txt /upload/mds-sftp-test.txt
+Uploading /tmp/mds-sftp-test.txt to /upload/mds-sftp-test.txt
+mds-sftp-test.txt                                     100%   33     0.1KB/s   00:00
+sftp&gt; get /upload/mds-sftp-test.txt /tmp/mds-sftp-downloaded.txt
+Fetching /upload/mds-sftp-test.txt to /tmp/mds-sftp-downloaded.txt
+mds-sftp-test.txt                                     100%   33     0.0KB/s   00:01
+sftp&gt; !sha256sum /tmp/mds-sftp-test.txt /tmp/mds-sftp-downloaded.txt
+d138cba463fc98be7e2c7692f969a71d0a4c17c095462a4e76ca03582535090e  /tmp/mds-sftp-test.txt
+d138cba463fc98be7e2c7692f969a71d0a4c17c095462a4e76ca03582535090e  /tmp/mds-sftp-downloaded.txt
+sftp&gt; put /tmp/mds-sftp-test.txt /mds-write-denied-test.txt
+Uploading /tmp/mds-sftp-test.txt to /mds-write-denied-test.txt
+dest open &quot;/mds-write-denied-test.txt&quot;: Permission denied
+sftp&gt; bye</code></pre><p>The <code>100%</code> lines show that both 33-byte transfers completed. The identical SHA-256 values confirm that the downloaded copy retained the original content. The final upload attempt shows the account could not write at the chroot root. I then typed <code>bye</code>; the SFTP client returned to the <code>devsecops@MERLANE:~$</code> WSL prompt.</p><p>The target-side destination was <code>/srv/sftp-data/upload/mds-sftp-test.txt</code>. Inside the chroot, that same location appeared as <code>/upload/mds-sftp-test.txt</code>.</p><h3>4.3 I tested actions the transfer account should be denied</h3><p>The successful transfer showed that the account could use SFTP. I then tested its restrictions: during the SFTP session, an attempt to upload <code>/mds-write-denied-test.txt</code> failed with <code>Permission denied</code>. The account could write inside <code>/upload</code>, but not at the chroot root.</p><p>To check that the account could not start a shell, I returned to WSL and used the still-open SSM tunnel to ask SSH to run <code>id</code>:</p><pre class="story-code"><code>ssh -T -p 2222 -i ~/.ssh/mds-linux-hardening-1b-sftpdata \
+  -o IdentitiesOnly=yes sftpdata@127.0.0.1 id</code></pre><p>The server responded, <code>This service allows sftp connections only.</code> The SSH request was refused as intended: the account could transfer files but could not run <code>id</code> as a shell command.</p><p>I also compared the saved host-key fingerprint with the one I obtained through SSM: <code>ssh-keygen -F</code> retrieves the saved host key for the local tunnel address, and the second command formats it as a SHA-256 fingerprint for comparison with the target's verified fingerprint.</p><pre class="story-code"><code>ssh-keygen -F '[127.0.0.1]:2222' | ssh-keygen -lf - -E sha256</code></pre><p><strong>Checkpoint:</strong> transfer succeeded within <code>/upload</code>, a chroot-root write failed, shell execution was denied, and the server identity matched.</p><h3>4.4 What the tests showed</h3><div class="story-table-wrap"><table><thead><tr><th>Check</th><th>Result</th></tr></thead><tbody><tr><td>---</td><td>---</td></tr><tbody><tr><td>Management path</td><td>Both private EC2 nodes were managed with SSM; no public IP or inbound security-group rule</td></tr><tbody><tr><td>Account boundary</td><td>Dedicated key, SFTP-only identity, root-owned chroot and restricted writable child directory</td></tr><tbody><tr><td>Transfer</td><td><code>mds-sftp-test.txt</code> uploaded and downloaded; SHA-256 values matched</td></tr><tbody><tr><td>Denied actions</td><td>Chroot-root write and shell command were refused</td></tr><tbody><tr><td>Host firewall</td><td>UFW active, default deny incoming, allow outgoing; new SSM and tunneled SFTP access still worked</td></tr><tbody><tr><td>Host monitoring</td><td>auditd active, nine watches loaded, harmless test events captured, zero lost events at status check</td></tr><tbody><tr><td>Maintenance and host settings</td><td>AppArmor/service state, update results, persistent sysctls, logs, and failed units inspected</td></tr></tbody></table></div><p>The <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/docs/verification.md" target="_blank" rel="noopener noreferrer">verification record</a> and <a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening/blob/master/evidence/hardening-results.md" target="_blank" rel="noopener noreferrer">hardening evidence</a> preserve the detailed checks alongside the Terraform and Ansible files. Along the way, I fixed a WSL PATH issue, created the missing CLI profile, corrected confusion between the workstation and target, installed auditd before enabling its service, and reran commands that I had accidentally pasted together. These problems reminded me to confirm the machine and prerequisite before changing a security setting. With the results checked, I moved on to removing the temporary AWS infrastructure.</p><h3>4.5 I removed the temporary files and destroyed the AWS infrastructure</h3><p>To finish the demonstration, I closed the SFTP and tunnel sessions and exited the EC2 shells. I then returned to the WSL project directory that held the Terraform configuration and state before removing the running resources.</p><p>I returned to the original Terraform working directory so Terraform could use the state that tracked the lab resources, then started the teardown:</p><pre class="story-code"><code>cd ~/mds-aws-linux-hardening-1b
+terraform destroy</code></pre><p>The first attempt stopped with <code>BucketNotEmpty</code> because <code>sftpdata/sftpdata.pub</code> was still in the transfer bucket. I removed that object and ran <code>terraform destroy</code> again, reviewed the proposed deletions, and confirmed them. Terraform reported <code>Destroy complete! Resources: 1 destroyed.</code> That was the final resource left from the earlier partial teardown.</p><p>I checked the Terraform state afterward:</p><pre class="story-code"><code>terraform state list</code></pre><p>It returned no resources, confirming that the state no longer tracked any lab infrastructure.</p><h3>4.6 I checked AWS service state after Terraform finished</h3><p>An empty Terraform state shows what that state file still manages; I also checked AWS. These queries use the deployment IDs and project tag, so there is no need to look up old outputs after destroy:</p><p>The tagging query returned old resource ARNs, which prompted direct service checks:</p><p>This query lists ARNs still returned by the project tag filter, so I could compare those results with each service's actual resource state.</p><pre class="story-code"><code>aws resourcegroupstaggingapi get-resources \
+  --tag-filters Key=Project,Values=mds-linux-hardening-1b \
+  --query 'ResourceTagMappingList[].ResourceARN' \
+  --output table \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><p>The AWS checks showed instance and NAT states, an endpoint-ID not-found response, and a volume-ID not-found response. A subsequent filtered volume check returned no resources.</p><p>The S3 verification command is preserved in the chat:</p><p>This query checks whether the lab bucket name still appears in the account's bucket list.</p><pre class="story-code"><code>aws s3api list-buckets \
+  --query &quot;Buckets[?Name=='mds-linux-hardening-1b-273517699789-us-east-1'].Name&quot; \
+  --output text \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre><p>My checks showed both instances <code>terminated</code>, the NAT Gateway <code>deleted</code>, the queried endpoint absent, and no volumes in the filtered volume result. Deleted instances can remain visible briefly; later their IDs can return not found. The tagging API still listed old ARNs, which did not override the direct service states. My S3 listing could not reach its endpoint at that time, so I treated the Terraform deletion separately from that unavailable check.</p><p><strong>Final checkpoint:</strong> Terraform state is empty, and direct service checks showed no active lab resources in the queried scope. I finished the demonstration by tearing down the infrastructure and keeping the configuration available to repeat the work.</p></div></div></section></main>
+<footer class="story-wrap story-footer"><span>Project 01B · Proactive AWS Linux Hardening</span><span><a href="https://github.com/DelaneKay/project-01b-proactive-linux-hardening" target="_blank" rel="noopener noreferrer">Full project repository ↗</a> &nbsp;·&nbsp; <a href="/#projects">Back to portfolio ↑</a></span></footer>
+<script>const themeRoot=document.documentElement;const themeButton=document.querySelector(".theme-toggle");const themeColor=document.querySelector('meta[name="theme-color"]');function applyTheme(theme){themeRoot.dataset.theme=theme;themeButton.setAttribute("aria-label",theme==="dark"?"Switch to light theme":"Switch to dark theme");themeColor.setAttribute("content",theme==="dark"?"#07111f":"#f1f5f8")}const savedTheme=localStorage.getItem("portfolio-theme");const systemTheme=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";applyTheme(savedTheme||systemTheme);themeButton.addEventListener("click",()=>{const next=themeRoot.dataset.theme==="dark"?"light":"dark";applyTheme(next);localStorage.setItem("portfolio-theme",next)});</script></body></html>

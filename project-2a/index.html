@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07111f" />
+    <link rel="canonical" href="https://delanekay.github.io/project-2a/" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1" />
+    <meta name="description" content="My Project 2A assessment of OWASP Juice Shop using SCA, SAST, DAST, and API security testing in an isolated local lab." />
+    <meta property="og:title" content="Project 2A Application and API Security | Kudakwashe Delan Sibanda" />
+    <meta property="og:description" content="An evidence-led assessment of OWASP Juice Shop across dependencies, source code, web behavior, and API authorization." />
+    <meta property="og:image" content="https://delanekay.github.io/assets/project-art/02-application-api-security.png" />
+    <title>Project 2A Application and API Security | Kudakwashe Delan Sibanda</title>
+    <link rel="stylesheet" href="../assets/styles.css?v=20261020-3" />
+    <style>
+      :root { --story-width: min(1120px, calc(100vw - 44px)); }
+      html { scroll-padding-top: 92px; }
+      body { font-size: 1rem; }
+      .story-nav { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(18px); }
+      .story-nav-inner { width: var(--story-width); min-height: 72px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+      .story-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .02em; }
+      .story-brand-mark { display: grid; width: 36px; aspect-ratio: 1; place-items: center; overflow: hidden; border-radius: 0; background: #07111f; }
+      .story-brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+      .story-nav-links { display: flex; align-items: center; gap: 18px; color: var(--muted-strong); font-size: .9rem; }
+      .story-nav-links a:hover { color: var(--accent); }
+      .story-wrap { width: var(--story-width); margin: auto; }
+      .story-hero { padding: clamp(62px, 9vw, 112px) 0 64px; }
+      .story-kicker, .story-index { color: var(--accent); font: 800 .78rem ui-monospace, "Cascadia Code", monospace; letter-spacing: .12em; text-transform: uppercase; }
+      .story-hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); align-items: center; gap: clamp(32px, 6vw, 76px); }
+      .story-hero h1 { max-width: 760px; margin: 20px 0 22px; font-size: clamp(2.7rem, 6vw, 5.3rem); line-height: .98; letter-spacing: -.065em; }
+      .story-hero h1 span { color: transparent; background: linear-gradient(115deg, var(--accent), #ffd089 48%, var(--cyan)); background-clip: text; }
+      .story-lede { max-width: 680px; color: var(--muted-strong); font-size: clamp(1.05rem, 1.8vw, 1.22rem); line-height: 1.75; }
+      .story-hero-art { position: relative; overflow: hidden; min-height: 285px; aspect-ratio: 1.5; border: 1px solid var(--line-strong); border-radius: 24px; box-shadow: var(--shadow); background: var(--bg-soft); }
+      .story-hero-art::after { position: absolute; inset: 50% 0 0; content: ""; background: linear-gradient(transparent, rgba(7,17,31,.62)); pointer-events: none; }
+      .story-hero-art img { width: 100%; height: 100%; min-height: 285px; object-fit: cover; }
+      .story-hero-art figcaption { position: absolute; z-index: 1; right: 18px; bottom: 15px; left: 18px; color: #d7e6f4; font-size: .77rem; }
+      .story-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .story-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 54px; }
+      .story-summary article { min-height: 112px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+      .story-summary strong { display: block; margin-bottom: 8px; color: var(--accent); font: 800 .76rem ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+      .story-summary span { color: var(--muted-strong); font-size: .98rem; line-height: 1.5; }
+      .story-section { padding: clamp(56px, 8vw, 96px) 0; border-top: 1px solid var(--line); }
+      .story-section-head { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; margin-bottom: 30px; }
+      .story-section h2 { max-width: 780px; font-size: clamp(1.9rem, 3.5vw, 3.1rem); line-height: 1.05; letter-spacing: -.045em; }
+      .story-section h3 { margin-bottom: 12px; font-size: 1.22rem; }
+      .story-prose { max-width: 850px; color: var(--muted-strong); font-size: 1.04rem; line-height: 1.82; }
+      .story-prose + .story-prose { margin-top: 16px; }
+      .story-prose strong { color: var(--text); }
+      .story-grid-two { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
+      .story-panel { padding: clamp(20px, 3vw, 30px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+      .story-panel { min-width: 0; }
+      .story-panel code { overflow-wrap: anywhere; }
+      .story-panel p { color: var(--muted-strong); font-size: 1rem; line-height: 1.75; }
+      .story-panel p + p { margin-top: 12px; }
+      .story-chip-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+      .story-chip-list span { padding: 7px 11px; color: var(--cyan); border: 1px solid color-mix(in srgb, var(--cyan) 32%, var(--line)); border-radius: 999px; font: 700 .75rem ui-monospace, monospace; }
+      .story-topology { overflow: hidden; margin-top: 26px; border: 1px solid var(--line); border-radius: 18px; background: var(--bg-soft); }
+      .story-topology img { width: 100%; height: auto; }
+      .story-topology figcaption { padding: 13px 17px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+      .story-code { overflow-x: auto; margin: 16px 0 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #081321; color: #d8e6f5; font: .88rem/1.7 ui-monospace, "Cascadia Code", monospace; }
+      .story-code code, .story-panel .story-code code { padding: 0; color: inherit; border-radius: 0; background: transparent; font: inherit; }
+      html[data-theme="dark"] .story-code { border-color: #d6dee8; background: #f1f5f9; color: #111827; }
+      html[data-theme="dark"] code { color: #111827; background: #e2e8f0; }
+      html[data-theme="dark"] .story-code code { color: inherit; background: transparent; }
+      html[data-theme="dark"] .story-chip-list span { color: #111827; border-color: #cbd5e1; background: #f1f5f9; }
+      html[data-theme="dark"] .story-chip-list span a { color: inherit; }
+      .story-table-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 14px; }
+      .story-table { width: 100%; border-collapse: collapse; color: var(--muted-strong); font-size: .92rem; line-height: 1.6; }
+      .story-table th, .story-table td { padding: 13px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+      .story-table th { color: var(--text); background: var(--bg-soft); font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+      .story-table tr:last-child td { border-bottom: 0; }
+      .story-table code { color: var(--cyan); }
+      html[data-theme="dark"] .story-table-wrap { border-color: #d6dee8; background: #f8fafc; }
+      html[data-theme="dark"] .story-table { color: #111827; }
+      html[data-theme="dark"] .story-table th { color: #ffffff; border-color: #0b1728; background: #07111f; }
+      html[data-theme="dark"] .story-table td { border-color: #cbd5e1; }
+      html[data-theme="dark"] .story-table code { color: #f8fafc; background: #101f33; }
+      html[data-theme="light"] .story-table-wrap { border-color: #07111f; background: #0b1728; }
+      html[data-theme="light"] .story-table { color: #f8fafc; }
+      html[data-theme="light"] .story-table th { color: #ffffff; border-color: #475569; background: #020617; }
+      html[data-theme="light"] .story-table td { border-color: #334155; }
+      html[data-theme="light"] .story-table code { color: #111827; background: #f1f5f9; }
+
+      .story-note { margin-top: 15px; padding: 14px 17px; border-left: 3px solid var(--cyan); border-radius: 0 10px 10px 0; background: var(--bg-soft); color: var(--muted-strong); font-size: .92rem; line-height: 1.65; }
+      .story-steps { display: grid; gap: 14px; counter-reset: step; }
+      .story-step { display: grid; grid-template-columns: 54px 1fr; gap: 16px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); counter-increment: step; }
+      .story-step::before { display: grid; width: 42px; height: 42px; place-items: center; content: "0" counter(step); color: var(--accent); border: 1px solid var(--line-strong); border-radius: 12px; font: 800 .8rem ui-monospace, monospace; }
+      .story-step h3 { margin: 1px 0 6px; font-size: 1.08rem; }
+      .story-step p { color: var(--muted-strong); font-size: .97rem; line-height: 1.7; }
+      .story-observation { display: grid; grid-template-columns: 190px 1fr; gap: 16px; padding: 17px 0; border-bottom: 1px solid var(--line); }
+      .story-observation:last-child { border-bottom: 0; }
+      .story-observation strong { color: var(--text); }
+      .story-observation p { color: var(--muted-strong); line-height: 1.65; }
+      .story-observation code, .story-prose code, .story-panel code { padding: .12em .35em; color: var(--cyan); border-radius: 5px; background: var(--bg-soft); font: .9em ui-monospace, monospace; }
+      .story-code-label { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; color: var(--muted); font: 700 .74rem ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; }
+      .story-principles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-top: 22px; }
+      .story-principles article { padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+      .story-principles h3 { margin-bottom: 8px; color: var(--accent); font-size: 1rem; }
+      .story-principles p { color: var(--muted-strong); font-size: .9rem; line-height: 1.65; }
+      .story-proof { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; margin-top: 26px; }
+      .story-proof a { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); transition: transform 180ms ease, border-color 180ms ease; }
+      .story-proof a:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+      .story-proof img { width: 100%; aspect-ratio: 16/9; object-fit: cover; object-position: top; background: var(--bg-soft); }
+      .story-proof span { display: block; padding: 13px 16px 15px; color: var(--muted-strong); font-size: .91rem; }
+      .story-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 30px 0 50px; color: var(--muted); font-size: .9rem; }
+      .story-footer a { color: var(--accent); }
+      body *, body *::before, body *::after { border-radius: 0 !important; }
+      @media (max-width: 850px) {
+        .story-hero-grid { grid-template-columns: 1fr; }
+        .story-hero-art { max-width: 660px; }
+        .story-section-head { grid-template-columns: 1fr; gap: 12px; }
+        .story-principles { grid-template-columns: repeat(2,1fr); }
+         .story-nav-inner { flex-wrap: wrap; padding: 10px 0; }
+        .story-nav-links { flex-wrap: wrap; justify-content: flex-end; gap: 10px; font-size: .8rem; }
+      }
+      @media (max-width: 600px) {
+        :root { --story-width: calc(100vw - 30px); }
+        .story-nav-inner { min-height: 62px; }
+        .story-nav-links a:not(.story-home) { display: none; }
+        .story-summary, .story-grid-two, .story-proof, .story-principles { grid-template-columns: 1fr; }
+        .story-hero { padding-top: 54px; }
+        .story-hero h1 { font-size: clamp(2.45rem, 12vw, 3.6rem); }
+        .story-hero-art, .story-hero-art img { min-height: 220px; }
+        .story-observation { grid-template-columns: 1fr; gap: 5px; }
+        .story-step { grid-template-columns: 42px 1fr; gap: 12px; }
+        .story-step::before { width: 36px; height: 36px; }
+      }
+    
+      /* Use the accent only for Meridian cards in multi-column sections. */
+      @media (min-width: 601px) {
+        .story-summary > article,
+        .story-grid-two > .story-panel,
+        .story-proof > a,
+        .story-principles > article { position: relative; }
+        .story-summary > article::before,
+        .story-grid-two > .story-panel::before,
+        .story-proof > a::before,
+        .story-principles > article::before {
+          position: absolute;
+          z-index: 2;
+          inset: 0 auto 0 0;
+          width: 3px;
+          content: "";
+          background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 36%, transparent) 54%, transparent 100%);
+          pointer-events: none;
+        }
+      }
+</style>
+  </head>
+  <body>
+    <header class="story-nav">
+      <div class="story-nav-inner">
+        <a class="story-brand" href="/#projects" aria-label="Back to Kudakwashe's portfolio">
+          <span class="story-brand-mark"><img src="/assets/favicon.png?v=1" alt="" /></span>
+          <span>APPLICATION SECURITY / PROJECT 02A</span>
+        </a>
+        <nav class="story-nav-links" aria-label="Walkthrough sections">
+          <a href="#lab">Lab setup</a><a href="#sca">SCA</a><a href="#sast">SAST</a><a href="#dast">DAST</a><a href="#api">API security</a><a href="#reporting">Reporting</a>
+          <a class="story-home" href="/#projects">Portfolio ↗</a>
+          <button class="icon-button theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme"><span class="theme-icon" aria-hidden="true">◐</span></button>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section class="story-hero"><div class="story-wrap">
+        <div class="story-hero-grid"><div>
+          <p class="story-kicker">PROJECT 02A / LOCAL APPLICATION SECURITY ASSESSMENT</p>
+          <h1>One training app.<br /><span>Four assessment views.</span></h1>
+          <p class="story-lede">I assessed OWASP Juice Shop on an isolated target server, looking at its dependencies, source code, running web application, and APIs. I documented what the tools and focused manual checks showed so the development and service owners could decide and carry out remediation.</p>
+          <div class="story-actions">
+            <a class="button button-primary" href="#lab">Follow the assessment <span aria-hidden="true">↓</span></a>
+            <a class="button button-outline" href="https://github.com/DelaneKay/project-2a-api-security-lab" target="_blank" rel="noopener noreferrer">Open assessment repository <span aria-hidden="true">↗</span></a>
+          </div>
+        </div><figure class="story-hero-art">
+          <img src="../assets/project-art/02-application-api-security.png?v=1" width="1672" height="940" alt="Illustration representing web application and API security testing" />
+          <figcaption>Project 2A · Local OWASP Juice Shop assessment</figcaption>
+        </figure></div>
+        <div class="story-summary" aria-label="Project summary">
+          <article><strong>Target</strong><span>OWASP Juice Shop v20.3.0 running in Docker on the hardened target VM</span></article>
+          <article><strong>Assessment</strong><span>Snyk Open Source, Snyk Code, and OWASP ZAP</span></article>
+          <article><strong>Outcome</strong><span>Findings recorded for owner triage; application remediation was outside this lab stage</span></article>
+        </div>
+      </div></section>
+      <section class="story-section" id="lab"><div class="story-wrap">
+        <div class="story-section-head"><p class="story-index">01 / THE LAB</p><h2>I continued in the three-node lab I had already hardened for Project 1A.</h2></div>
+        <div class="story-prose">
+          <p>I used OWASP Juice Shop, an intentionally vulnerable training application designed for security practice. It gave me a controlled target with realistic web and API routes. The result describes this version of the lab application; I do not treat every deliberate training weakness as evidence of a production defect.</p>
+          <p>The workload ran in Docker on the target server. I used WSL as my workstation for the source checkout and assessment tools, and the hardened admin node as the SSH hop to the hardened target node. The three-node arrangement carried forward the isolation and access controls from <a href="/meridian/">Project 1A Linux Server Hardening</a>. I transferred the container image into the lab rather than opening the target to unrestricted internet access.</p>
+          <p>During setup I hit practical issues: Docker was initially unavailable to my WSL account, the target had no Docker CLI, an image pull failed when the target could not resolve Docker Hub, and the first SSH tunnel attempts reused port 3000 or pointed to a stopped service. I checked each layer separately—engine, container, bridge, host route, and tunnel—before continuing. The working assessment tunnel was on local port 3001.</p>
+        </div>
+      </div></section>
+      <section class="story-section" id="sca"><div class="story-wrap">
+        <div class="story-section-head"><p class="story-index">02 / SOFTWARE COMPOSITION ANALYSIS</p><h2>I used Snyk Open Source to identify vulnerable dependencies.</h2></div>
+        <div class="story-prose">
+          <p>SCA examined the package manifest and dependency tree. My first run could not proceed because <code>node_modules</code> and a committed lockfile were missing. After installing Node.js and npm in WSL, I installed the dependencies without running package lifecycle scripts and repeated the scan. Snyk reported 87 advisory/path entries: 2 Critical, 36 High, 47 Medium, and 2 Low. I recorded individual advisories and dependency paths, preserving repeated paths where the source output did so.</p>
+          <pre class="story-code"><code>cd ~/project-2a/juice-shop-source
+npm install --ignore-scripts
+&quot;$HOME/.local/bin/snyk&quot; test --dev</code></pre>
+          <p>The assessment report separates scanner severity from my risk triage. The package results are evidence for dependency owners to review and update; I did not upgrade packages or modify the application in this stage.</p>
+          <div class="story-chip-list"><span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/assessment/sca-individual-findings.md" target="_blank" rel="noopener noreferrer">SCA individual findings ↗</a></span></div>
+        </div>
+      </div></section>
+      <section class="story-section" id="sast"><div class="story-wrap">
+        <div class="story-section-head"><p class="story-index">03 / STATIC APPLICATION SECURITY TESTING</p><h2>I scanned the source in a white-box assessment.</h2></div>
+        <div class="story-prose">
+          <p>SAST analyzes source code without requiring the application to be running. In this lab I used the matching Juice Shop v20.3.0 source checkout, so Snyk Code could report source paths and line numbers. This is the white-box view. My first attempt returned no findings because Snyk Code was disabled for the selected organization; after I enabled it, the scan returned 306 findings: 26 High, 11 Medium, and 269 Low. I noted that 240 Low records were in <code>test/</code> paths for owner triage.</p>
+          <pre class="story-code"><code>cd ~/project-2a/juice-shop-source
+&quot;$HOME/.local/bin/snyk&quot; code test</code></pre>
+          <p>I reviewed and documented the individual results, including their source locations. Because Juice Shop deliberately includes vulnerable training code and test fixtures, I treated each result as a finding to interpret in context rather than an automatic production risk. Source owners would decide which findings applied to a real deployment.</p>
+          <div class="story-chip-list"><span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/assessment/sast-individual-findings.md" target="_blank" rel="noopener noreferrer">SAST individual findings ↗</a></span></div>
+        </div>
+      </div></section>
+      <section class="story-section" id="dast"><div class="story-wrap">
+        <div class="story-section-head"><p class="story-index">04 / DYNAMIC APPLICATION SECURITY TESTING</p><h2>I tested the running service in a black-box view.</h2></div>
+        <div class="story-prose">
+          <p>DAST sends requests to a running application and judges its observable responses without relying on source code. That is the black-box view for this lab: OWASP ZAP reached the Juice Shop instance through the local SSH tunnel. I ran baseline and AJAX-enabled baseline scans, then used ZAP’s API to compare the URL lists from its traditional Spider and AJAX Spider. The saved comparison contained 91 AJAX URLs, 94 traditional URLs, 10 exact matches, and 81 AJAX-only URL strings. Changing Socket.IO query values contributed to the URL-string counts, so I did not treat those values as 81 distinct routes.</p>
+          <pre class="story-code"><code>chmod 777 ~/project-2a/zap-reports
+docker run --rm -t -e HOME=/tmp \
+  -v "$HOME/project-2a/zap-reports:/zap/wrk:rw" \
+  zaproxy/zap-stable \
+  zap-baseline.py -t http://host.docker.internal:3000 -r juice-shop-baseline.html
+docker run --rm -t -e HOME=/tmp \
+  -v "$HOME/project-2a/zap-reports:/zap/wrk:rw" \
+  zaproxy/zap-stable \
+  zap-baseline.py -t http://host.docker.internal:3000 -j -r juice-shop-ajax.html</code></pre>
+          <p>The generic baseline produced 116 URLs, 0 FAIL alerts, 3 warning types, and 58 PASS checks; the AJAX-enabled baseline produced 35 URLs, 0 FAIL alerts, 3 warning types, and 58 PASS checks. I also used ZAP’s API Scan with an eight-route, GET-only OpenAPI definition. It imported 16 URLs and reported 53 total URLs, 108 PASS checks, 0 FAIL alerts, and 7 warning types; the report listed 37 GET endpoints. Its generated probes were active scanner traffic, so I reviewed those alerts separately and checked relevant responses against source and manual evidence. Scanner output alone did not establish exploitability.</p>
+          <div class="story-code-label"><span>ZAP API Scan</span><span>Read-only OpenAPI route list</span></div>
+          <pre class="story-code"><code>docker run --rm -t -e HOME=/tmp \
+  -v "$HOME/project-2a/zap-reports:/zap/wrk:rw" \
+  zaproxy/zap-stable \
+  zap-api-scan.py -t /zap/wrk/juice-shop-api-readonly.yaml \
+  -f openapi -r juice-shop-api-active.html</code></pre>
+          <div class="story-chip-list"><span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/assessment/dast-individual-findings.md" target="_blank" rel="noopener noreferrer">DAST individual findings ↗</a></span></div>
+        </div>
+      </div></section>
+      <section class="story-section" id="api"><div class="story-wrap">
+        <div class="story-section-head"><p class="story-index">05 / API SECURITY</p><h2>I combined ZAP’s API scan with focused, read-only checks.</h2></div>
+        <div class="story-prose">
+          <p>ZAP’s API scan covered the documented API surface. I used small Python helpers to compare crawled URL lists, inspect configuration property names without printing values, and review saved ZAP alerts. For authorization, I tested two lab accounts against their own baskets and then against each other’s basket IDs. A separate helper checked whether an unsigned token was accepted for a read-only basket request. I did not change basket contents or use these checks against a production service.</p>
+          <p>The two-account check returned each other account’s basket, which I recorded as a confirmed lab broken object-level authorization finding. The unsigned-token request was accepted for a read-only basket request. I also recorded ZAP’s product-search SQL injection alert and confirmed unsafe query construction in the source; I did not demonstrate data extraction. I kept these manual checks separate from ZAP’s scanner alerts, even where the endpoints overlapped, because they use different evidence and methods.</p>
+          <div class="story-code-label"><span>Reusable API review helpers</span><span>Python scripts in the project repository</span></div>
+          <div class="story-chip-list">
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/compare_spider_url_lists.py" target="_blank" rel="noopener noreferrer">Compare Spider URL lists ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/inspect_application_configuration.py" target="_blank" rel="noopener noreferrer">Inspect configuration keys ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/extract_zap_sql_alert.py" target="_blank" rel="noopener noreferrer">Extract SQL alert evidence ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/check_two_account_bola.py" target="_blank" rel="noopener noreferrer">Check basket authorization ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/check_unsigned_jwt.py" target="_blank" rel="noopener noreferrer">Check unsigned JWT handling ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/inspect_zap_api_alerts.py" target="_blank" rel="noopener noreferrer">Inspect ZAP API alerts ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/extract_zap_server_errors.py" target="_blank" rel="noopener noreferrer">Extract server error evidence ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/scripts/api-security/compare_product_search_responses.py" target="_blank" rel="noopener noreferrer">Compare search responses ↗</a></span>
+          </div>
+          <p class="story-note">The helpers prompt for test-account credentials where required and avoid recording passwords or tokens in the evidence. The source review and observed responses informed triage; endpoints that returned expected public catalog or version data were not called vulnerabilities solely because they returned HTTP 200.</p>
+          <div class="story-chip-list"><span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/assessment/manual-api-findings.md" target="_blank" rel="noopener noreferrer">Manual API findings and tool overlap ↗</a></span></div>
+        </div>
+      </div></section>
+      <section class="story-section" id="reporting"><div class="story-wrap">
+        <div class="story-section-head"><p class="story-index">06 / REPORTING + OWNERSHIP</p><h2>I prepared the evidence for the people responsible for the fixes.</h2></div>
+        <div class="story-prose">
+          <p>My role in this lab was to assess, validate, document, and route findings. I did not write Juice Shop and I did not remediate its code. In a working team, I would give development or service owners clear reproduction evidence, impact, and acceptance criteria, then track the risk and follow up on verification after their change.</p>
+          <p>The repository contains the consolidated assessment inventory, individual SCA, SAST, DAST, and manual API findings, a triage review, and a risk register. I also created six remediation issues for actionable API findings. This demonstrates the handoff from assessment to engineering ownership without presenting unverified scanner alerts as confirmed defects.</p>
+          <div class="story-chip-list">
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/assessment/assessment-report-inventory.md" target="_blank" rel="noopener noreferrer">Assessment inventory ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/assessment/risk-register.md" target="_blank" rel="noopener noreferrer">Risk register ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/assessment/triage-review.md" target="_blank" rel="noopener noreferrer">Triage review ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/issues" target="_blank" rel="noopener noreferrer">GitHub remediation issues ↗</a></span>
+            <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab/blob/master/docs/step-by-step-lab-walkthrough.md" target="_blank" rel="noopener noreferrer">Full step-by-step walkthrough ↗</a></span>
+          </div>
+          <div class="story-grid-two" style="margin-top:24px">
+            <article class="story-panel"><h3>OWASP classifications</h3><p>I used OWASP categories to describe the application and API risk types in the assessment record. The categories helped explain what the findings represented; they did not replace evidence or determine remediation ownership.</p></article>
+            <article class="story-panel"><h3>NIST CSF 2.0 in the workflow</h3><p>I used the risk register to show how findings fit an organizational process: identify and assess risk, assign an owner, track treatment, and retain verification evidence. Framework mapping belongs in that governance view where useful, rather than cluttering each engineering issue.</p></article>
+          </div>
+          <p class="story-note">This was a local training assessment, not a production audit or claim of compliance. Project 2B is the separate planned cloud application and API security track.</p>
+        </div>
+      </div></section>
+    </main>
+    <footer class="story-wrap story-footer">
+      <span>Project 2A · Local Application and API Security Assessment</span>
+      <span><a href="https://github.com/DelaneKay/project-2a-api-security-lab" target="_blank" rel="noopener noreferrer">Full assessment repository ↗</a> &nbsp;·&nbsp; <a href="/#projects">Back to portfolio ↑</a></span>
+    </footer>
+    <script>
+      const themeRoot = document.documentElement;
+      const themeButton = document.querySelector(".theme-toggle");
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+      function applyTheme(theme) {
+        themeRoot.dataset.theme = theme;
+        themeButton.setAttribute("aria-label", theme === "dark" ? "Switch to light theme" : "Switch to dark theme");
+        themeColor.setAttribute("content", theme === "dark" ? "#07111f" : "#f1f5f8");
+      }
+      const savedTheme = localStorage.getItem("portfolio-theme");
+      const systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      applyTheme(savedTheme || systemTheme);
+      themeButton.addEventListener("click", () => {
+        const nextTheme = themeRoot.dataset.theme === "dark" ? "light" : "dark";
+        applyTheme(nextTheme);
+        localStorage.setItem("portfolio-theme", nextTheme);
+      });
+    </script>
+  </body>
+</html>

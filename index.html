@@ -184,7 +184,7 @@
                 <dd>Existing cloud delivery repositories</dd>
               </div>
               <div>
-                <dt><span class="count-up" data-target="11">0</span></dt>
+                <dt><span class="count-up" data-target="12">0</span></dt>
                 <dd>Projects in my DevSecOps roadmap</dd>
               </div>
             </dl>
@@ -497,7 +497,7 @@
             </div>
             <div class="project-grid roadmap-grid">
               <article class="project-card roadmap-card reveal" data-project-chooser="linux-hardening">
-                <div class="project-card-top"><span class="project-status">PROJECT 01A COMPLETE · EXTENSIONS PLANNED</span><span>01 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PROJECT 01A COMPLETE · EXTENSIONS PLANNED</span><span>01 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Linux servers, SSH hardening and firewall controls"><img class="roadmap-art-image" src="assets/project-art/01-linux-hardening.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">LINUX / HOST HARDENING</p>
@@ -511,20 +511,35 @@
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-delay="60">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>02 / 11</span></div>
-                <div class="roadmap-project-art" role="img" aria-label="Web application and API security testing"><img class="roadmap-art-image" src="assets/project-art/02-application-api-security.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
+                <div class="project-card-top"><span class="project-status">PROJECT 02A COMPLETE · ASSESSMENT ONLY</span><span>02 / 12</span></div>
+                <div class="roadmap-project-art" role="img" aria-label="Web application and API security testing in an isolated local lab"><img class="roadmap-art-image" src="assets/project-art/02-application-api-security.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
-                  <p class="project-type">APPLICATION / API SECURITY</p>
-                  <h3>Application and API Security</h3>
+                  <p class="project-type">APPLICATION / API SECURITY · LOCAL</p>
+                  <h3>Project 2A: SCA, SAST, DAST and API Security</h3>
                   <div class="roadmap-implementation-grid">
-                    <div><h4>Local implementation</h4><p>Test Juice Shop and Python APIs, investigate OWASP vulnerabilities, run SAST and DAST, and remediate findings.</p></div>
-                    <div><h4>AWS implementation</h4><p>Deploy isolated applications on ECS or EC2 and assess application and network security.</p></div>
+                    <div><h4>Local implementation</h4><p>I assessed OWASP Juice Shop v20.3.0 in Docker on the hardened target server, using WSL for Snyk and OWASP ZAP, with the hardened admin node as the SSH hop. I recorded dependency, source, web, and API findings without changing the application.</p></div>
+                    <div><h4>Assessment outcome</h4><p>I documented individual findings, triage, ownership, and evidence for the development and service teams. Remediation was outside this assessment stage.</p></div>
                   </div>
-                  <div class="roadmap-tools"><strong>Tools</strong><p>SonarQube, Snyk Code, Semgrep, OWASP ZAP, Burp Suite, Bruno or Postman, pytest, Docker, AWS WAF</p></div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>Docker, OWASP Juice Shop, Snyk Open Source, Snyk Code, OWASP ZAP, Python, GitHub Issues</p></div>
+                  <div class="roadmap-links"><a href="/project-2a/">Read Project 2A case study ↗</a><a href="https://github.com/DelaneKay/project-2a-api-security-lab" target="_blank" rel="noreferrer">View assessment repository ↗</a></div>
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-delay="120">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>03 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PROJECT 02B PLANNED</span><span>03 / 12</span></div>
+                <div class="roadmap-project-art" role="img" aria-label="Planned cloud application and API security assessment"><img class="roadmap-art-image" src="assets/project-art/02-application-api-security.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
+                <div class="project-card-body roadmap-card-body">
+                  <p class="project-type">APPLICATION / API SECURITY · CLOUD</p>
+                  <h3>Project 2B: Cloud Application and API Security</h3>
+                  <div class="roadmap-implementation-grid">
+                    <div><h4>Local implementation</h4><p>Project 2A is the completed local assessment and provides the testing and reporting baseline for this separate cloud track.</p></div>
+                    <div><h4>AWS implementation</h4><p>Planned assessment of an isolated cloud-hosted application and its APIs, including the surrounding network and AWS security controls.</p></div>
+                  </div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>OWASP ZAP, Snyk, Docker, AWS, IAM, VPC security controls, AWS WAF</p></div>
+                  <div class="roadmap-links"><a href="/project-2a/">View the completed local Project 2A ↗</a></div>
+                </div>
+              </article>
+              <article class="project-card roadmap-card reveal" data-delay="120">
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>04 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Secure CI/CD pipeline with build, test, scan and deploy stages"><img class="roadmap-art-image" src="assets/project-art/03-secure-cicd-pipeline.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">SECURE DELIVERY / CI/CD</p>
@@ -546,7 +561,7 @@
             </div>
             <div class="project-grid roadmap-grid">
               <article class="project-card roadmap-card reveal">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>04 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>05 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Software supply chain with software package, signed container and verification record"><img class="roadmap-art-image" src="assets/project-art/04-software-supply-chain.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">ARTIFACT INTEGRITY / PROVENANCE</p>
@@ -559,7 +574,7 @@
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-delay="60">
-                <div class="project-card-top"><span class="project-status">PLANNED · QUALYS VMDR INCLUDED</span><span>05 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED · QUALYS VMDR INCLUDED</span><span>06 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Vulnerability management dashboard with scanner findings and severity scores"><img class="roadmap-art-image" src="assets/project-art/05-vulnerability-management.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">FINDINGS / REMEDIATION</p>
@@ -572,7 +587,7 @@
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-delay="120">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>06 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>07 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Docker containers and Kubernetes workload security"><img class="roadmap-art-image" src="assets/project-art/06-docker-kubernetes.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">CONTAINERS / KUBERNETES</p>
@@ -594,7 +609,7 @@
             </div>
             <div class="project-grid roadmap-grid">
               <article class="project-card roadmap-card reveal">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>07 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>08 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="AWS infrastructure and Terraform security"><img class="roadmap-art-image" src="assets/project-art/07-aws-terraform.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">TERRAFORM / CLOUD BASELINE</p>
@@ -607,7 +622,7 @@
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-delay="60">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>08 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>09 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="SIEM dashboards and security event investigation"><img class="roadmap-art-image" src="assets/project-art/08-siem-detection.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">SIEM / DETECTION / RESPONSE</p>
@@ -629,7 +644,7 @@
             </div>
             <div class="project-grid roadmap-grid">
               <article class="project-card roadmap-card reveal">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>09 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>10 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="AWS native secure build and deployment pipeline"><img class="roadmap-art-image" src="assets/project-art/09-aws-native-pipeline.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">AWS-NATIVE DELIVERY</p>
@@ -642,7 +657,7 @@
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-delay="60">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>10 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>11 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="GitHub Actions, GitOps and Kubernetes platform"><img class="roadmap-art-image" src="assets/project-art/10-github-gitops.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">GITHUB ACTIONS / GITOPS</p>
@@ -655,7 +670,7 @@
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-delay="120">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>11 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PLANNED</span><span>12 / 12</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Security operations dashboards and incident response automation"><img class="roadmap-art-image" src="assets/project-art/11-security-operations.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">SECURITY OPERATIONS / AUTOMATION</p>

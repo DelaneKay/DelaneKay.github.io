@@ -497,17 +497,17 @@
             </div>
             <div class="project-grid roadmap-grid">
               <article class="project-card roadmap-card reveal" data-project-chooser="linux-hardening">
-                <div class="project-card-top"><span class="project-status">PROJECT 01A COMPLETE · EXTENSIONS PLANNED</span><span>01 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">PROJECT 01A + 01B COMPLETE</span><span>01 / 11</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Linux servers, SSH hardening and firewall controls"><img class="roadmap-art-image" src="assets/project-art/01-linux-hardening.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">LINUX / HOST HARDENING</p>
                   <h3>Linux Server Hardening</h3>
                   <div class="roadmap-implementation-grid">
                     <div><h4>Local implementation</h4><p>The local track covers SSH, permissions, firewalls, and audit logging. Completed subproject 01a: I investigated an existing Ubuntu reporting server in a two-VM VirtualBox lab and hardened its service identity, data access, and systemd controls. The remaining local controls are planned.</p></div>
-                    <div><h4>AWS implementation</h4><p>Planned proactive hardening of a new EC2 server, automated baseline configuration, and audit of administrative access.</p></div>
+                    <div><h4>AWS implementation</h4><p>Completed Project 01B: I built and hardened an AWS EC2 SFTP server, used audited administrative access, and verified the restricted file-transfer path.</p></div>
                   </div>
                   <div class="roadmap-tools"><strong>Tools</strong><p>Linux, Bash, Ansible, Lynis, OpenSCAP, auditd, UFW, Terraform, EC2, SSM</p></div>
-                  <div class="roadmap-links"><a href="/meridian/">Read Project 01a case study ↗</a><a href="https://github.com/DelaneKay/project-01a-meridian-linux-hardening" target="_blank" rel="noreferrer">View its repository ↗</a></div>
+                  <div class="roadmap-links"><a href="/project-1a/">Read Project 01a case study ↗</a><a href="https://github.com/DelaneKay/project-01a-meridian-linux-hardening" target="_blank" rel="noreferrer">View its repository ↗</a></div>
                 </div>
               </article>
               <article class="project-card roadmap-card reveal" data-project-chooser="application-security">
@@ -1140,17 +1140,17 @@
           <button class="dialog-close project-choice-close" type="button" aria-label="Close project choices">×</button>
         </div>
         <div class="project-choice-grid">
-          <a class="project-choice-card" href="/meridian/">
+          <a class="project-choice-card" href="/project-1a/">
             <div class="project-choice-top"><span>PROJECT 01A</span><span class="project-choice-status is-complete">COMPLETE</span></div>
             <h3>Local VirtualBox lab</h3>
             <p>Investigate and harden an Ubuntu reporting server in an isolated two-VM lab. Review the evidence, controls, and validation.</p>
             <span class="project-choice-link">Open local project <span aria-hidden="true">↗</span></span>
           </a>
-          <a class="project-choice-card" href="/linux-hardening/aws/">
-            <div class="project-choice-top"><span>PROJECT 01B</span><span class="project-choice-status">PLANNED</span></div>
+          <a class="project-choice-card" href="/project-1b/">
+            <div class="project-choice-top"><span>PROJECT 01B</span><span class="project-choice-status is-complete">COMPLETE</span></div>
             <h3>AWS EC2 hardening</h3>
-            <p>Extend the baseline to a new EC2 host with automated hardening and audited administrative access.</p>
-            <span class="project-choice-link">Open AWS project brief <span aria-hidden="true">↗</span></span>
+            <p>I extended the hardening work to an AWS EC2 host with automated controls and audited administrative access.</p>
+            <span class="project-choice-link">Open AWS case study <span aria-hidden="true">↗</span></span>
           </a>
         </div>
       </div>
@@ -1254,7 +1254,7 @@
         const choiceDialog = chooserKey
           ? document.querySelector(`#${chooserKey}-choice`)
           : null;
-        const walkthrough = card.querySelector('a[href="/meridian/"]');
+        const walkthrough = card.querySelector('a[href="/project-1a/"]');
         const buildBrief = card.querySelector(".project-open[data-project]");
         const title = card.querySelector("h3")?.textContent.trim();
         if (!chooserKey && !walkthrough && !buildBrief) return;

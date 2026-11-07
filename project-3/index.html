@@ -92,6 +92,8 @@
       .story-observation strong { color: var(--text); }
       .story-observation p { color: var(--muted-strong); line-height: 1.65; }
       .story-observation code, .story-prose code, .story-panel code { padding: .12em .35em; color: var(--cyan); border-radius: 5px; background: var(--bg-soft); font: .9em ui-monospace, monospace; }
+      html[data-theme="dark"] .project-walkthrough .story-code { background: transparent; border-color: var(--line); color: #f8fafc; }
+      .project-walkthrough .story-code code, html[data-theme="dark"] .project-walkthrough .story-code code { padding: 0; background: transparent; color: inherit; font: inherit; }
       .story-code-label { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; color: var(--muted); font: 700 .74rem ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; }
       .story-principles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-top: 22px; }
       .story-principles article { padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }

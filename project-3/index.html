@@ -148,7 +148,7 @@
 </style>
   </head>
   <body>
-<header class="story-nav"><div class="story-nav-inner"><a class="story-brand" href="/#projects"><span class="story-brand-mark"><img src="/assets/favicon.png?v=1" alt="" /></span><span>SECURE CI/CD ON AWS / 03</span></a><nav class="story-nav-links" aria-label="Case study sections"><a href="#lab">The lab</a><a href="#build">Image builds</a><a href="#pipeline">Pipeline</a><a href="#challenges">Challenges</a><a href="#evidence">Evidence</a><a class="story-home" href="/#projects">Portfolio ↗</a><button class="icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"><span class="theme-icon" aria-hidden="true">◐</span></button></nav></div></header>
+<header class="story-nav"><div class="story-nav-inner"><a class="story-brand" href="/#projects"><span class="story-brand-mark"><img src="/assets/favicon.png?v=1" alt="" /></span><span>SECURE CI/CD ON AWS / 03</span></a><nav class="story-nav-links" aria-label="Case study sections"><a href="#lab">The lab</a><a href="#build">Image builds</a><a href="#pipeline">Pipeline</a><a href="#walkthrough">Walkthrough</a><a href="#challenges">Challenges</a><a href="#evidence">Evidence</a><a class="story-home" href="/#projects">Portfolio ↗</a><button class="icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"><span class="theme-icon" aria-hidden="true">◐</span></button></nav></div></header>
 <main>
 <section class="story-hero"><div class="story-wrap"><div class="story-hero-grid"><div><p class="story-kicker">PROJECT 03 / AWS DEVSECOPS</p><h1>Build once.<br /><span>Scan and deploy with confidence.</span></h1><p class="story-lede">I built an AWS lab around OWASP Juice Shop to connect immutable infrastructure, security scanning and reviewed deployments in one repeatable pipeline.</p><div class="story-actions"><a class="button button-primary" href="#lab">Explore the project ↓</a><a class="button button-outline" href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline" target="_blank" rel="noopener noreferrer">Open project repository ↗</a></div></div><figure class="story-hero-art"><img src="/assets/project-art/03-secure-cicd-pipeline.png" width="1672" height="940" alt="Illustration of a secure CI/CD pipeline" /><figcaption>Project artwork for the AWS secure delivery lab</figcaption></figure></div><div class="story-summary"><article><strong>Challenge</strong><span>Bring infrastructure and application security checks into a repeatable deployment process.</span></article><article><strong>Approach</strong><span>Packer images, layered Terraform, GitHub Actions and an AWS scanner runner.</span></article><article><strong>Outcome</strong><span>Four scan types, reviewed deployments and a successful combined pipeline.</span></article></div></div></section>
 <section class="story-section" id="lab"><div class="story-wrap"><div class="story-section-head"><p class="story-index">01 / THE LAB</p><h2>I built a controlled AWS environment around an intentionally vulnerable application.</h2></div><div class="story-prose"><p>I used OWASP Juice Shop as the target and deployed it alongside a self-hosted GitHub Actions scanner runner, a private SonarQube server and an encrypted PostgreSQL database. The scanner and application were in a public subnet with restricted security groups; SonarQube and RDS were in private subnets.</p><p>I used Systems Manager for administration and diagnostics without inbound SSH. VPC endpoints provided private access to selected AWS services. GitHub-hosted jobs used OIDC roles for Terraform, while the AWS runner handled the security scans.</p></div><figure class="story-topology"><img src="https://raw.githubusercontent.com/DelaneKay/project-3-secure-cicd-pipeline/master/docs/images/project-3-lab-architecture.svg" alt="Project 3 AWS lab architecture and CI/CD flow" /><figcaption>The lab’s build, deployment, scanning and reporting paths. See the repository walkthrough for the trust boundaries and configuration.</figcaption></figure></div></section>
@@ -156,6 +156,2218 @@
 <section class="story-section" id="pipeline"><div class="story-wrap"><div class="story-section-head"><p class="story-index">03 / THE PIPELINE</p><h2>I tested each workflow on its own, then connected them.</h2></div><div class="story-steps"><article class="story-step"><div><h3>Gitleaks · secret scanning</h3><p>I scanned repository history and investigated a public-key fingerprint that was reported as a false positive.</p></div></article><article class="story-step"><div><h3>SonarQube · SAST</h3><p>I submitted the matching Juice Shop source to the private SonarQube server and exported an aggregate summary with a separate reporting credential.</p></div></article><article class="story-step"><div><h3>Dependency-Check · SCA</h3><p>I scanned packaged dependencies for known vulnerabilities and recorded limited coverage: the release lacked a top-level lockfile and npm audit was unavailable.</p></div></article><article class="story-step"><div><h3>Terraform · reviewed deployment</h3><p>Plans were saved and reviewed before apply. Network ran first; dependent layers followed, with independent work in parallel where possible.</p></div></article><article class="story-step"><div><h3>OWASP ZAP · DAST</h3><p>After deployment, ZAP ran a bounded unauthenticated spider and active scan against the approved Juice Shop target. I retained the coverage limitation with its results.</p></div></article></div><div class="story-note">The scanner runner and SonarQube had to be bootstrapped before the combined workflow’s pre-deployment scans. I kept the standalone workflows for testing and investigation.</div></div></section>
 <section class="story-section" id="challenges"><div class="story-wrap"><div class="story-section-head"><p class="story-index">04 / TROUBLESHOOTING</p><h2>The failures helped me strengthen the build and the reporting.</h2></div><div class="story-grid-two"><article class="story-panel"><h3>SonarQube startup</h3><p>The service did not become ready because its runtime user could not execute the installed AWS CLI. I inspected permissions, corrected the image build, rebuilt the AMI and verified the replacement returned an UP status.</p></article><article class="story-panel"><h3>Runner capacity and tools</h3><p>A scan exhausted the original runner’s memory. I changed its instance size and replaced it through Terraform. Missing Node.js and npm were added to a rebuilt runner image before the dependency workflow was retested.</p></article><article class="story-panel"><h3>Terraform state and IAM</h3><p>I investigated stale saved plans, a state lock and an existing database after backend changes. Network recreation also changed VPC and subnet IDs used by the separately bootstrapped apply-role policy; that reconciliation remained a manual gap.</p></article><article class="story-panel"><h3>Scan execution versus findings</h3><p>A Dependency-Check run produced reports but ended with an execution error. I treated that as a failure rather than a clean result, investigated it and retained the eventual limited-coverage notice.</p></article></div></div></section>
 <section class="story-section" id="evidence"><div class="story-wrap"><div class="story-section-head"><p class="story-index">05 / OUTCOME &amp; EVIDENCE</p><h2>A combined run completed; its findings and limitations stayed visible.</h2></div><div class="story-prose"><p>The combined workflow completed with the separate secret, SAST, SCA, reviewed Terraform and DAST stages. GitHub Actions retained scan artifacts, while CloudWatch and SNS received aggregate summaries rather than an email for each finding.</p><p>Juice Shop is deliberately vulnerable, so findings remained report-only. A successful job means the workflow completed; it does not mean the application has no vulnerabilities. The lab demonstrates security controls and automation, not a claim of production readiness.</p></div><div class="story-chip-list"><span><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/actions/runs/41846334576" target="_blank" rel="noopener noreferrer">Combined run ↗</a></span><span><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline" target="_blank" rel="noopener noreferrer">Full walkthrough and source ↗</a></span></div></div></section>
+<section class="story-section" id="walkthrough"><div class="story-wrap"><div class="story-section-head"><p class="story-index">06 / STEP-BY-STEP WALKTHROUGH</p><h2>How I built and tested the lab</h2></div><div class="story-prose project-walkthrough"><h3>Step-by-step walkthrough</h3>
+<h3 id="walkthrough-1">1. Recover my IAM sign-in, then start a short-lived AWS login session</h3>
+<p>I started in WSL as the Linux user <code>devsecops</code>. Before building anything, I recovered access to my IAM user and checked which AWS identity the CLI was using. A local Linux prompt saying <code>root</code> is different from the AWS root identity; the ARN returned by STS is what I checked.</p>
+<pre class="story-code"><code>cd ~/projects</code></pre>
+<p>I created the directories needed for the next files, keeping the build and infrastructure components separate.</p>
+<pre class="story-code"><code>mkdir project-3-secure-cicd-pipeline</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd project-3-secure-cicd-pipeline</code></pre>
+<h4>Recover the IAM user's console password</h4>
+<p>I wanted to carry out the lab as the <code>mds-devsecops-lab</code> IAM user and use <code>aws login</code> to obtain temporary CLI credentials. I could not sign in as that user with the console password I had available, so I first needed to reset the password. Once I had restored access, I could sign in as the IAM user and continue the lab with that identity.</p>
+<p>I chose <code>aws login</code> because its browser-based flow gives the CLI short-lived credentials and manages their refresh during the login session. Their limited lifetime reduces how long exposed credentials can be used, although they still need protection and are subject to the IAM user's permissions. When the CLI session expires, I can sign in again; an expired session alone does not require a password reset. <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sign-in.html">AWS explains the login flow</a>.</p>
+<p>Another option is to enter IAM access keys through the basic <code>aws configure</code> prompt. I avoided long-term keys for this lab because the CLI stores supplied keys in a local credentials file, where they could be exposed if the file or a backup were copied or committed. Unlike temporary credentials, IAM user access keys do not expire automatically and must be managed and revoked when needed. The concern is the use of long-term keys: <code>aws configure</code> can also set non-secret options, and <code>aws configure sso</code> can set up temporary credentials. <a href="https://docs.aws.amazon.com/cli/latest/reference/configure/">AWS CLI configure reference</a>, <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html">AWS IAM credential guidance</a>.</p>
+<p>To recover the IAM user's password, I used my existing <code>root-recovery</code> profile for this one recovery session. The command opened a browser sign-in link, which I followed to authenticate as the AWS account root user.</p>
+<pre class="story-code"><code>aws login --profile root-recovery</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity \
+  --profile root-recovery \
+  --query Arn \
+  --output text</code></pre>
+<p>I checked that the returned ARN ended in <code>:root</code> before using the recovery profile. A profile name is only a local label; a profile called <code>root-recovery</code> can still point to a different identity. This was the recovery route I used when I could not access my IAM account, not a requirement to sign in as root whenever an IAM user's CLI session expires.</p>
+<p>I then used this Python-assisted command to set a new console password for <code>mds-devsecops-lab</code>. It prompts without echoing the password, checks the confirmation, writes the request into a restricted temporary file, and removes that file on exit. I did not paste a real password into the command or commit one to the repository.</p>
+<pre class="story-code"><code>(
+  set -e
+  umask 077
+
+  login_input=&quot;$(mktemp)&quot;
+  trap 'rm -f &quot;$login_input&quot;' EXIT
+
+  python3 - &quot;$login_input&quot; &lt;&lt;'PY'
+import getpass
+import json
+import sys
+
+password = getpass.getpass(&quot;New password for mds-devsecops-lab: &quot;)
+confirmation = getpass.getpass(&quot;Enter it again: &quot;)
+
+if not password or password != confirmation:
+    raise SystemExit(&quot;Passwords are empty or do not match. Nothing changed.&quot;)
+
+with open(sys.argv[1], &quot;w&quot;) as file:
+    json.dump({
+        &quot;UserName&quot;: &quot;mds-devsecops-lab&quot;,
+        &quot;Password&quot;: password,
+        &quot;PasswordResetRequired&quot;: False
+    }, file)
+PY
+
+  aws iam update-login-profile \
+    --cli-input-json &quot;file://$login_input&quot; \
+    --profile root-recovery \
+    --no-cli-auto-prompt
+
+  printf 'IAM user password updated successfully.\n'
+)</code></pre>
+<p>The important distinction is that this script resets the <strong>IAM console password</strong>. It does not generate short-lived API credentials, renew an expired CLI session or reset the root password. AWS documents that behaviour in <a href="https://docs.aws.amazon.com/cli/latest/reference/iam/update-login-profile.html">update-login-profile</a>. An administrator authorized to reset IAM login profiles can perform this operation too; it is not inherently a root-only task.</p>
+<h4>Leave the recovery identity and log in as my IAM user</h4>
+<p>Once access was recovered, I ended the cached root-recovery CLI session, then signed in through the browser as <code>mds-devsecops-lab</code> using the new password. I selected the IAM user session rather than reusing a root browser session.</p>
+<pre class="story-code"><code>aws logout --profile root-recovery</code></pre>
+<p>I signed in as the IAM user through the browser so the CLI could obtain temporary credentials for the lab.</p>
+<pre class="story-code"><code>aws login --profile mds-devsecops-lab</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity \
+  --profile mds-devsecops-lab \
+  --query Arn \
+  --output text</code></pre>
+<p>I expected the ARN to end in <code>:user/mds-devsecops-lab</code>. The <code>aws login</code> browser flow obtains temporary CLI credentials; the CLI manages their refresh within the allowed login session. When that session expires, I run <code>aws login --profile mds-devsecops-lab</code> again. I do not reset the console password simply because the temporary credentials expired. This is the distinction described in <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sign-in.html">AWS's local-development login guidance</a>.</p>
+<pre class="story-code"><code>export AWS_PROFILE=mds-devsecops-lab</code></pre>
+<p>I set the region for SDKs and tools that read <code>AWS_REGION</code>, keeping this shell pointed at the lab's AWS region.</p>
+<pre class="story-code"><code>export AWS_REGION=us-east-1</code></pre>
+<p>I also set the AWS CLI's default region so a command without an explicit <code>--region</code> uses the same lab region.</p>
+<pre class="story-code"><code>export AWS_DEFAULT_REGION=us-east-1</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity</code></pre>
+<p>I checked the installed Packer version before using its templates.</p>
+<pre class="story-code"><code>packer version</code></pre>
+<p>The existing directory was later replaced by a clone, so I did not repeat <code>mkdir</code> on every visit. I continued the lab with the IAM user for authorized administrative setup and with the dedicated assumed roles for Packer and the pipeline.</p>
+<h4>Why I kept root out of routine lab work</h4>
+<p>A principle reinforced by my AWS security studies was to keep the root identity protected and avoid it for ordinary administration. Root has account-wide powers, including operations reserved to root; accidental use or compromise therefore has a particularly large impact. I documented my root recovery as an exception and moved back to a non-root identity afterward. AWS recommends protecting root, using it only where required, enabling MFA and avoiding root access keys in its <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html">root-user guidance</a>.</p>
+<p>For this lab I used my IAM user for the administrative work I was authorized to perform instead of deploying as root. Administrative permissions are still powerful: <code>AdministratorAccess</code> is not least privilege, and replacing root with an unrestricted user does not remove that risk. I used separate scoped roles for automation. AWS's broader recommendation is federated human access with temporary credentials where possible, workload roles, MFA and least privilege—not permanently granting every operator administrator permissions. See <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html">IAM security best practices</a>.</p>
+<h3 id="walkthrough-2">2. Install Packer and the Session Manager plugin</h3>
+<p>With IAM access recovered and the active AWS identity checked, I could prepare the local tools for the image builds.</p>
+<p>Packer is an image-building tool that creates machine images from repeatable build instructions. I used it to prepare the operating system, software, services and hardening in Amazon Machine Images (AMIs) before Terraform deployed the instances. This supported the immutable infrastructure principle I wanted to demonstrate: once a host was deployed, I treated its installed software and baseline configuration as fixed. When something needed changing, I updated the build instructions, rebuilt the AMI and replaced the instance instead of configuring it by hand after deployment.</p>
+<p>Packer does not itself prevent someone from changing a running instance; that was a practice I followed in the lab. I still used read-only checks to diagnose problems, and the baked startup code could retrieve environment-specific settings and credentials. The local Session Manager plugin let Packer tunnel its SSH connection to a temporary builder through SSM without an inbound SSH rule.</p>
+<p>I installed Packer from HashiCorp's package repository and the local Session Manager plugin. The version checks returned Packer 1.16.2 and plugin 1.2.896.0 in the recorded session. A completed installer returning to the prompt is different from a command that is still waiting.</p>
+<pre class="story-code"><code>sudo apt-get update</code></pre>
+<p>I installed the local package prerequisites for the next build-tool setup step.</p>
+<pre class="story-code"><code>sudo apt-get install -y wget gpg lsb-release</code></pre>
+<p>I downloaded HashiCorp's package-signing key and installed it in the local keyring used by APT.</p>
+<pre class="story-code"><code>wget -O- https://apt.releases.hashicorp.com/gpg \
+  | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg</code></pre>
+<p>I registered the HashiCorp APT repository against that keyring so APT could obtain Packer from the intended source.</p>
+<pre class="story-code"><code>echo &quot;deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?&lt;=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main&quot; \
+  | sudo tee /etc/apt/sources.list.d/hashicorp.list</code></pre>
+<p>I refreshed WSL's package index before installing the local build prerequisites.</p>
+<pre class="story-code"><code>sudo apt-get update</code></pre>
+<p>I installed Packer from the configured package repository.</p>
+<pre class="story-code"><code>sudo apt-get install -y packer</code></pre>
+<p>I checked the installed Packer version before using its templates.</p>
+<pre class="story-code"><code>packer version</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity</code></pre>
+<p>I downloaded the Session Manager installer for the local WSL workstation.</p>
+<pre class="story-code"><code>curl &quot;https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb&quot; \
+  -o session-manager-plugin.deb</code></pre>
+<p>I installed the downloaded Session Manager package on WSL, where Packer needed the connection plugin.</p>
+<pre class="story-code"><code>sudo dpkg -i session-manager-plugin.deb</code></pre>
+<p>I checked that the Session Manager plugin was available to the local build connection.</p>
+<pre class="story-code"><code>session-manager-plugin --version</code></pre>
+<h3 id="walkthrough-3">3. Authenticate GitHub and clone the repository</h3>
+<p>Once the local build and connection tools were available, I needed a version-controlled checkout to hold their configuration.</p>
+<p>Git and GitHub gave the build scripts and workflows a versioned source and review history. A later replacement could then be traced to a specific change.</p>
+<p>I used HTTPS with GitHub CLI for the repository. When browser authentication timed out, I checked connectivity before retrying authentication. I selected repository access for the private repository at that stage; visibility was changed later. I did not put a token in a Git command or commit it.</p>
+<pre class="story-code"><code>gh auth login</code></pre>
+<p>I tested HTTPS connectivity to GitHub before treating an authentication timeout as a credential problem.</p>
+<pre class="story-code"><code>curl -I --connect-timeout 10 https://api.github.com/</code></pre>
+<p>I checked the download or HTTP endpoint needed by this step before relying on it.</p>
+<pre class="story-code"><code>curl -I --connect-timeout 10 https://github.com/</code></pre>
+<p>I checked the active GitHub account and authentication status before retrying repository operations.</p>
+<pre class="story-code"><code>gh auth status</code></pre>
+<p>I created the directories needed for the next files, keeping the build and infrastructure components separate.</p>
+<pre class="story-code"><code>mkdir -p ~/Downloads</code></pre>
+<p>I moved the existing local file out of the way before cloning into the project directory.</p>
+<pre class="story-code"><code>mv ~/projects/project-3-secure-cicd-pipeline/session-manager-plugin.deb ~/Downloads/</code></pre>
+<p>I moved into my project workspace before creating or opening the lab directory.</p>
+<pre class="story-code"><code>cd ~/projects</code></pre>
+<p>I cloned the repository so I could work with its version-controlled configuration.</p>
+<pre class="story-code"><code>git clone https://github.com/DelaneKay/project-3-secure-cicd-pipeline.git</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I checked the working tree to see which files had changed and whether my branch tracked the intended remote.</p>
+<pre class="story-code"><code>git status --short --branch</code></pre>
+<p>The original folder contained the downloaded Session Manager package and was not a Git repository. The move-and-clone commands above belong to that initial recovery, not every future checkout. I used <code>git status --short --branch</code> to confirm that <code>master</code> tracked <code>origin/master</code>.</p>
+<h3 id="walkthrough-4">4. Create the temporary builder role and instance profile</h3>
+<p>With the repository in place, I could define the AWS identity that the temporary image builder would use.</p>
+<p>I gave the temporary EC2 builder its own role so it could use SSM without inheriting the operator's AWS build permissions.</p>
+<p>I created the EC2 role used by temporary Packer builders to register with Systems Manager. This role is separate from my Packer operator role and from the runtime roles used by the application, SonarQube and scanner. I ran the creation once; if a later command failed, I inspected the resources rather than blindly recreating them.</p>
+<pre class="story-code"><code>set -euo pipefail
+umask 077
+
+profile=&quot;mds-devsecops-lab&quot;
+role=&quot;project-3-packer-builder-role&quot;
+instance_profile=&quot;project-3-packer-builder-profile&quot;
+trust_file=&quot;$(mktemp)&quot;
+trap 'rm -f &quot;$trust_file&quot;' EXIT
+
+aws sts get-caller-identity --profile &quot;$profile&quot; \
+  --query Arn --output text
+
+cat &gt; &quot;$trust_file&quot; &lt;&lt;'JSON'
+{
+  &quot;Version&quot;: &quot;2012-10-17&quot;,
+  &quot;Statement&quot;: [
+    {
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Principal&quot;: {&quot;Service&quot;: &quot;ec2.amazonaws.com&quot;},
+      &quot;Action&quot;: &quot;sts:AssumeRole&quot;
+    }
+  ]
+}
+JSON
+
+aws iam create-role \
+  --role-name &quot;$role&quot; \
+  --assume-role-policy-document &quot;file://$trust_file&quot; \
+  --description &quot;SSM access for temporary Project 3 Packer builders&quot; \
+  --profile &quot;$profile&quot;
+
+aws iam attach-role-policy \
+  --role-name &quot;$role&quot; \
+  --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore \
+  --profile &quot;$profile&quot;
+
+aws iam create-instance-profile \
+  --instance-profile-name &quot;$instance_profile&quot; \
+  --profile &quot;$profile&quot;
+
+aws iam add-role-to-instance-profile \
+  --instance-profile-name &quot;$instance_profile&quot; \
+  --role-name &quot;$role&quot; \
+  --profile &quot;$profile&quot;
+
+aws iam get-instance-profile \
+  --instance-profile-name &quot;$instance_profile&quot; \
+  --profile &quot;$profile&quot; \
+  --query 'InstanceProfile.Roles[].RoleName' \
+  --output text</code></pre>
+<p>I checked the managed policy attached to the builder role before starting an SSM-connected build.</p>
+<pre class="story-code"><code>aws iam list-attached-role-policies \
+  --role-name project-3-packer-builder-role \
+  --profile mds-devsecops-lab \
+  --output table</code></pre>
+<h3 id="walkthrough-5">5. Give Packer its own assumed role</h3>
+<p>The builder now had its own instance identity; I next separated the permissions used to launch and manage that builder.</p>
+<p>I used an assumed operator role so Packer could perform image-build and cleanup API calls using temporary credentials. The human login remained outside the image.</p>
+<p>The first build could not find usable credentials even though AWS CLI could identify my user. I created an operator role, granted my IAM user permission to assume it, and configured a login-backed credential process. Packer then used the <code>project-3-packer</code> role profile. The policy below is the actual lab bootstrap policy; its regional wildcard permissions are a lab limitation, not a claim of production-grade least privilege.</p>
+<pre class="story-code"><code>set -euo pipefail
+umask 077
+
+profile=&quot;mds-devsecops-lab&quot;
+user_name=&quot;mds-devsecops-lab&quot;
+operator_role=&quot;project-3-packer-operator-role&quot;
+trust_file=&quot;$(mktemp)&quot;
+assume_policy_file=&quot;$(mktemp)&quot;
+trap 'rm -f &quot;$trust_file&quot; &quot;$assume_policy_file&quot;' EXIT
+
+account_id=&quot;$(aws sts get-caller-identity \
+  --profile &quot;$profile&quot; \
+  --region us-east-1 \
+  --query Account --output text)&quot;
+caller_arn=&quot;$(aws sts get-caller-identity \
+  --profile &quot;$profile&quot; \
+  --region us-east-1 \
+  --query Arn --output text)&quot;
+
+if [[ &quot;$caller_arn&quot; != &quot;arn:aws:iam::${account_id}:user/${user_name}&quot; ]]; then
+  echo &quot;Unexpected AWS identity: $caller_arn&quot;
+  exit 1
+fi
+
+cat &gt; &quot;$trust_file&quot; &lt;&lt;JSON
+{
+  &quot;Version&quot;: &quot;2012-10-17&quot;,
+  &quot;Statement&quot;: [
+    {
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Principal&quot;: {
+        &quot;AWS&quot;: &quot;arn:aws:iam::${account_id}:user/${user_name}&quot;
+      },
+      &quot;Action&quot;: &quot;sts:AssumeRole&quot;
+    }
+  ]
+}
+JSON
+
+cat &gt; &quot;$assume_policy_file&quot; &lt;&lt;JSON
+{
+  &quot;Version&quot;: &quot;2012-10-17&quot;,
+  &quot;Statement&quot;: [
+    {
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: &quot;sts:AssumeRole&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:iam::${account_id}:role/${operator_role}&quot;
+    }
+  ]
+}
+JSON
+
+aws iam create-role \
+  --role-name &quot;$operator_role&quot; \
+  --assume-role-policy-document &quot;file://$trust_file&quot; \
+  --description &quot;Packer operator role for Project 3 AMI builds&quot; \
+  --max-session-duration 3600 \
+  --profile &quot;$profile&quot;
+
+aws iam put-user-policy \
+  --user-name &quot;$user_name&quot; \
+  --policy-name project-3-assume-packer-operator \
+  --policy-document &quot;file://$assume_policy_file&quot; \
+  --profile &quot;$profile&quot;
+
+aws iam get-role \
+  --role-name &quot;$operator_role&quot; \
+  --profile &quot;$profile&quot; \
+  --query 'Role.Arn' \
+  --output text</code></pre>
+<p>I saved the following configuration as a complete file. Keeping the file-writing block intact preserves its variables, delimiters and generated contents.</p>
+<pre class="story-code"><code>set -euo pipefail
+umask 077
+
+policy_file=&quot;$(mktemp)&quot;
+trap 'rm -f &quot;$policy_file&quot;' EXIT
+
+cat &gt; &quot;$policy_file&quot; &lt;&lt;'JSON'
+{
+  &quot;Version&quot;: &quot;2012-10-17&quot;,
+  &quot;Statement&quot;: [
+    {
+      &quot;Sid&quot;: &quot;PackerEc2ImageBuildInUsEast1&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: [
+        &quot;ec2:AttachVolume&quot;,
+        &quot;ec2:CopyImage&quot;,
+        &quot;ec2:CreateImage&quot;,
+        &quot;ec2:CreateKeyPair&quot;,
+        &quot;ec2:CreateSnapshot&quot;,
+        &quot;ec2:CreateTags&quot;,
+        &quot;ec2:CreateVolume&quot;,
+        &quot;ec2:DeleteKeyPair&quot;,
+        &quot;ec2:DeleteSnapshot&quot;,
+        &quot;ec2:DeleteVolume&quot;,
+        &quot;ec2:DeregisterImage&quot;,
+        &quot;ec2:DescribeImageAttribute&quot;,
+        &quot;ec2:DescribeImages&quot;,
+        &quot;ec2:DescribeInstances&quot;,
+        &quot;ec2:DescribeInstanceStatus&quot;,
+        &quot;ec2:DescribeRegions&quot;,
+        &quot;ec2:DescribeSecurityGroups&quot;,
+        &quot;ec2:DescribeSubnets&quot;,
+        &quot;ec2:DescribeSnapshots&quot;,
+        &quot;ec2:DescribeTags&quot;,
+        &quot;ec2:DescribeVolumes&quot;,
+        &quot;ec2:DetachVolume&quot;,
+        &quot;ec2:ModifyImageAttribute&quot;,
+        &quot;ec2:ModifyInstanceAttribute&quot;,
+        &quot;ec2:RegisterImage&quot;,
+        &quot;ec2:RunInstances&quot;,
+        &quot;ec2:StopInstances&quot;,
+        &quot;ec2:TerminateInstances&quot;
+      ],
+      &quot;Resource&quot;: &quot;*&quot;,
+      &quot;Condition&quot;: {
+        &quot;StringEquals&quot;: {
+          &quot;aws:RequestedRegion&quot;: &quot;us-east-1&quot;
+        }
+      }
+    },
+    {
+      &quot;Sid&quot;: &quot;PackerSsmTunnelInUsEast1&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: [
+        &quot;ssm:StartSession&quot;,
+        &quot;ssm:TerminateSession&quot;,
+        &quot;ssm:ResumeSession&quot;
+      ],
+      &quot;Resource&quot;: &quot;*&quot;,
+      &quot;Condition&quot;: {
+        &quot;StringEquals&quot;: {
+          &quot;aws:RequestedRegion&quot;: &quot;us-east-1&quot;
+        }
+      }
+    },
+    {
+      &quot;Sid&quot;: &quot;InspectOnlyPackerBuilderRole&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: [
+        &quot;iam:GetInstanceProfile&quot;,
+        &quot;iam:GetRole&quot;
+      ],
+      &quot;Resource&quot;: [
+        &quot;arn:aws:iam::YOUR_ACCOUNT_ID:instance-profile/project-3-packer-builder-profile&quot;,
+        &quot;arn:aws:iam::YOUR_ACCOUNT_ID:role/project-3-packer-builder-role&quot;
+      ]
+    },
+    {
+      &quot;Sid&quot;: &quot;PassOnlyPackerBuilderRoleToEc2&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: &quot;iam:PassRole&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:iam::YOUR_ACCOUNT_ID:role/project-3-packer-builder-role&quot;,
+      &quot;Condition&quot;: {
+        &quot;StringEquals&quot;: {
+          &quot;iam:PassedToService&quot;: &quot;ec2.amazonaws.com&quot;
+        }
+      }
+    }
+  ]
+}
+JSON
+
+python3 -m json.tool &quot;$policy_file&quot; &gt;/dev/null
+
+aws iam put-role-policy \
+  --role-name project-3-packer-operator-role \
+  --policy-name project-3-packer-operator-policy \
+  --policy-document &quot;file://$policy_file&quot; \
+  --profile mds-devsecops-lab
+
+aws iam get-role-policy \
+  --role-name project-3-packer-operator-role \
+  --policy-name project-3-packer-operator-policy \
+  --profile mds-devsecops-lab \
+  --query '[RoleName,PolicyName]' \
+  --output text</code></pre>
+<p>I kept this setup operation together because its variables, checks and cleanup depend on the same shell session. It prepares or verifies the configuration described in this step.</p>
+<pre class="story-code"><code>set -euo pipefail
+
+aws configure set credential_process \
+  'aws configure export-credentials --profile mds-devsecops-lab --format process' \
+  --profile mds-devsecops-lab-packer-source
+
+aws configure set region us-east-1 \
+  --profile mds-devsecops-lab-packer-source
+
+aws configure set role_arn \
+  arn:aws:iam::YOUR_ACCOUNT_ID:role/project-3-packer-operator-role \
+  --profile project-3-packer
+
+aws configure set source_profile mds-devsecops-lab-packer-source \
+  --profile project-3-packer
+
+aws configure set role_session_name project-3-packer-build \
+  --profile project-3-packer
+
+aws configure set region us-east-1 \
+  --profile project-3-packer
+
+aws sts get-caller-identity \
+  --profile project-3-packer \
+  --region us-east-1 \
+  --query Arn \
+  --output text</code></pre>
+<p>I expected <code>assumed-role/project-3-packer-operator-role/project-3-packer-build</code> from the final identity check. The operator policy does not grant every discovery call: later <code>DescribeVpcs</code> and public SSM AMI-parameter lookups were performed with the IAM user's profile. I kept the actual image build on the role.</p>
+<h3 id="walkthrough-6">6. Select Ubuntu 24.04 and inspect the bootstrap network</h3>
+<p>With role-based build access established, I could choose the operating-system image and check the network it would use.</p>
+<p>I selected the base image and checked its owner before building on it. A consistent verified base reduces variation between the three host images.</p>
+<p>I chose Ubuntu 24.04 LTS amd64 and retrieved Canonical's public AMI parameter. The recorded image was <code>ami-REPLACE_WITH_YOUR_ID</code>, owned by Canonical account <code>099720109477</code>. Before building, I inspected the default VPC, subnet public-IP behavior and route to the internet gateway.</p>
+<pre class="story-code"><code>aws ssm get-parameter \
+  --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64 \
+  --query 'Parameter.Value' \
+  --output text \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre>
+<p>I checked the AMI's owner, state and image metadata before building or deploying from it.</p>
+<pre class="story-code"><code>aws ec2 describe-images \
+  --image-ids ami-REPLACE_WITH_YOUR_ID \
+  --query 'Images[0].[Name,Architecture,OwnerId,State]' \
+  --output table \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre>
+<p>I looked up the default VPC and its subnet settings before choosing where the first temporary builder would run.</p>
+<pre class="story-code"><code>DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
+  --region us-east-1 \
+  --profile mds-devsecops-lab \
+  --filters Name=isDefault,Values=true \
+  --query 'Vpcs[0].VpcId' \
+  --output text)
+
+printf 'Default VPC: %s\n' &quot;$DEFAULT_VPC_ID&quot;
+
+if [ &quot;$DEFAULT_VPC_ID&quot; != &quot;None&quot; ]; then
+  aws ec2 describe-subnets \
+    --region us-east-1 \
+    --profile mds-devsecops-lab \
+    --filters &quot;Name=vpc-id,Values=$DEFAULT_VPC_ID&quot; \
+    --query 'Subnets[].{Subnet:SubnetId,AZ:AvailabilityZone,AutoPublicIP:MapPublicIpOnLaunch}' \
+    --output table
+fi</code></pre>
+<p>I checked the route table to confirm the builder had the intended outbound network path.</p>
+<pre class="story-code"><code>aws ec2 describe-route-tables \
+  --region us-east-1 \
+  --profile mds-devsecops-lab \
+  --filters Name=vpc-id,Values=vpc-REPLACE_WITH_YOUR_ID \
+  --query 'RouteTables[].{RouteTable:RouteTableId,Main:Associations[?Main==`true`]|[0].Main,Subnets:Associations[].SubnetId,Routes:Routes[].{Destination:DestinationCidrBlock,Gateway:GatewayId,State:State}}' \
+  --output json</code></pre>
+<h3 id="walkthrough-7">7. Create a no-ingress Packer security group</h3>
+<p>The network inspection showed where the builder would run. I next restricted its traffic with a dedicated security group.</p>
+<p>The temporary builder needed outbound download and management access, not inbound administration. Its dedicated security group made that boundary explicit.</p>
+<p>I stopped using the default security group for builds and created a dedicated group with no inbound rules. Its outbound rules allowed TCP 80 for package mirrors and TCP 443 for SSM and downloads. Packer used its SSH communicator inside an SSM tunnel; this lab did not open public port 22. The temporary communicator is still SSH internally, so I do not describe it as an SSH-free Packer protocol.</p>
+<pre class="story-code"><code>set -euo pipefail
+
+PACKER_SG_ID=&quot;$(aws ec2 create-security-group \
+  --group-name project-3-packer-builder \
+  --description &quot;Temporary no-ingress security group for SSM-connected Packer builds&quot; \
+  --vpc-id vpc-REPLACE_WITH_YOUR_ID \
+  --tag-specifications 'ResourceType=security-group,Tags=[{Key=Project,Value=project-3-secure-cicd-pipeline},{Key=Purpose,Value=packer-builder}]' \
+  --query GroupId \
+  --output text \
+  --profile mds-devsecops-lab \
+  --region us-east-1)&quot;
+
+printf 'Created Packer builder security group: %s\n' &quot;$PACKER_SG_ID&quot;
+
+aws ec2 revoke-security-group-egress \
+  --group-id &quot;$PACKER_SG_ID&quot; \
+  --ip-permissions '[{&quot;IpProtocol&quot;:&quot;-1&quot;,&quot;IpRanges&quot;:[{&quot;CidrIp&quot;:&quot;0.0.0.0/0&quot;}]}]' \
+  --profile mds-devsecops-lab \
+  --region us-east-1
+
+aws ec2 authorize-security-group-egress \
+  --group-id &quot;$PACKER_SG_ID&quot; \
+  --ip-permissions '[{&quot;IpProtocol&quot;:&quot;tcp&quot;,&quot;FromPort&quot;:80,&quot;ToPort&quot;:80,&quot;IpRanges&quot;:[{&quot;CidrIp&quot;:&quot;0.0.0.0/0&quot;,&quot;Description&quot;:&quot;HTTP package mirrors during Packer build&quot;}]},{&quot;IpProtocol&quot;:&quot;tcp&quot;,&quot;FromPort&quot;:443,&quot;ToPort&quot;:443,&quot;IpRanges&quot;:[{&quot;CidrIp&quot;:&quot;0.0.0.0/0&quot;,&quot;Description&quot;:&quot;HTTPS for SSM and build downloads&quot;}]}]' \
+  --profile mds-devsecops-lab \
+  --region us-east-1
+
+aws ec2 describe-security-groups \
+  --group-ids &quot;$PACKER_SG_ID&quot; \
+  --query 'SecurityGroups[0].{GroupId:GroupId,Ingress:IpPermissions,Egress:IpPermissionsEgress}' \
+  --output json \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre>
+<h3 id="walkthrough-8">8. Create the Juice Shop image files and build my first AMI</h3>
+<p>With the base image, roles and network prepared, I could build the first host: Juice Shop.</p>
+<p>Here I moved Juice Shop installation and host configuration into Packer. I prepared the runtime, service and firewall before launch; a later correction meant rebuilding and replacing the host.</p>
+<p>I created the Juice Shop template and installation script, then formatted, initialized and validated the template before building. I used the corrected checked-in installation script, including its UFW settings. An early SSM Agent command used <code>snap enable</code>; I corrected it to <code>snap start</code> before the successful build.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I created the directories needed for the next files, keeping the build and infrastructure components separate.</p>
+<pre class="story-code"><code>mkdir -p packer/juice-shop/scripts</code></pre>
+<p>I initialized the template's declared Packer plugin before validating or building the image.</p>
+<pre class="story-code"><code>packer init packer/juice-shop</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+if ! grep -q 'ssh_clear_authorized_keys' packer/juice-shop/juice-shop.pkr.hcl; then
+  sed -i '/ssh_timeout[[:space:]]*=/a\  ssh_clear_authorized_keys = true' \
+    packer/juice-shop/juice-shop.pkr.hcl
+fi
+
+packer fmt packer/juice-shop
+
+packer validate \
+  -var 'source_ami_id=ami-REPLACE_WITH_YOUR_ID' \
+  -var 'subnet_id=subnet-REPLACE_WITH_YOUR_ID' \
+  -var 'security_group_id=sg-REPLACE_WITH_YOUR_ID' \
+  packer/juice-shop</code></pre>
+<p>I corrected the recorded source-file setting before rebuilding the image. I made this change in the checkout, not on the deployed server.</p>
+<pre class="story-code"><code>sed -i 's/^[[:space:]]*snap enable amazon-ssm-agent$/  snap start amazon-ssm-agent/' \
+  packer/juice-shop/scripts/install-juice-shop.sh</code></pre>
+<p>I read the SSM Agent section of the saved installer to confirm the corrected command was in the image source.</p>
+<pre class="story-code"><code>sed -n '100,112p' packer/juice-shop/scripts/install-juice-shop.sh</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I started the image build with the Packer operator role and the selected inputs. Provisioning runs on the temporary builder; it is not a repair command for a deployed host.</p>
+<pre class="story-code"><code>AWS_PROFILE=project-3-packer AWS_REGION=us-east-1 packer build \
+  -var 'source_ami_id=ami-REPLACE_WITH_YOUR_ID' \
+  -var 'subnet_id=subnet-REPLACE_WITH_YOUR_ID' \
+  -var 'security_group_id=sg-REPLACE_WITH_YOUR_ID' \
+  packer/juice-shop</code></pre>
+<p>I baked Node.js, Juice Shop 20.3.0, its systemd service, SSM support, CloudWatch configuration and host firewall into the image. The <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/packer/juice-shop/juice-shop.pkr.hcl">Packer template</a> and <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/packer/juice-shop/scripts/install-juice-shop.sh">installation script</a> define what the build installs. I did not run that provisioning script against the deployed application server.</p>
+<h3 id="walkthrough-9">9. Create the SonarQube image and validate all required inputs</h3>
+<p>After establishing the application image, I applied the image-building process to the separate analysis server.</p>
+<p>SonarQube needed a separate image because it serves a different purpose and uses a different runtime from Juice Shop. I baked its software and startup mechanism before deployment.</p>
+<p>I created a separate SonarQube template, installer and CloudWatch installer. I loaded <code>version.env</code> because a valid template still needs values for source AMI, subnet, security group, SonarQube version and Java package. Running validation without those values produced the unset-variable errors we saw.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+cat &gt; packer/sonarqube/version.env &lt;&lt;'EOF'
+SONARQUBE_VERSION=26.10.0.133078
+JAVA_PACKAGE=openjdk-21-jdk
+EOF</code></pre>
+<p>I opened the named file in the editor to save the configuration for this component.</p>
+<pre class="story-code"><code>nano packer/sonarqube/scripts/install-sonarqube.sh</code></pre>
+<p>I saved the following configuration as a complete file. Keeping the file-writing block intact preserves its variables, delimiters and generated contents.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+cat &gt; packer/sonarqube/sonarqube.pkr.hcl &lt;&lt;'EOF'
+packer {
+  required_plugins {
+    amazon = {
+      source  = &quot;github.com/hashicorp/amazon&quot;
+      version = &quot;&gt;= 1.8.3, &lt; 1.9.0&quot;
+    }
+  }
+}
+
+variable &quot;aws_region&quot; {
+  type    = string
+  default = &quot;us-east-1&quot;
+}
+
+variable &quot;source_ami_id&quot; {
+  type = string
+}
+
+variable &quot;subnet_id&quot; {
+  type = string
+}
+
+variable &quot;security_group_id&quot; {
+  type = string
+}
+
+variable &quot;builder_instance_profile&quot; {
+  type    = string
+  default = &quot;project-3-packer-builder-profile&quot;
+}
+
+variable &quot;builder_instance_type&quot; {
+  type    = string
+  default = &quot;t3.small&quot;
+}
+
+variable &quot;sonarqube_version&quot; {
+  type = string
+}
+
+variable &quot;java_package&quot; {
+  type = string
+}
+
+source &quot;amazon-ebs&quot; &quot;sonarqube&quot; {
+  region                      = var.aws_region
+  source_ami                  = var.source_ami_id
+  instance_type               = var.builder_instance_type
+  subnet_id                   = var.subnet_id
+  security_group_id           = var.security_group_id
+  associate_public_ip_address = true
+
+  iam_instance_profile      = var.builder_instance_profile
+  communicator              = &quot;ssh&quot;
+  ssh_interface             = &quot;session_manager&quot;
+  ssh_username              = &quot;ubuntu&quot;
+  ssh_timeout               = &quot;30m&quot;
+  ssh_clear_authorized_keys = true
+
+  ami_name        = &quot;project-3-sonarqube-ubuntu-24-04-{{timestamp}}&quot;
+  ami_description = &quot;Hardened Ubuntu 24.04 AMI with SonarQube Community Build for Project 3&quot;
+
+  metadata_options {
+    http_endpoint = &quot;enabled&quot;
+    http_tokens   = &quot;required&quot;
+  }
+
+  launch_block_device_mappings {
+    device_name           = &quot;/dev/sda1&quot;
+    volume_size           = 30
+    volume_type           = &quot;gp3&quot;
+    delete_on_termination = true
+  }
+
+  run_tags = {
+    Project = &quot;project-3-secure-cicd-pipeline&quot;
+    Purpose = &quot;temporary-packer-builder&quot;
+  }
+
+  tags = {
+    Project = &quot;project-3-secure-cicd-pipeline&quot;
+    Image   = &quot;sonarqube&quot;
+    OS      = &quot;ubuntu-24.04&quot;
+  }
+}
+
+build {
+  name    = &quot;sonarqube-ami&quot;
+  sources = [&quot;source.amazon-ebs.sonarqube&quot;]
+
+  provisioner &quot;shell&quot; {
+    script = &quot;${path.root}/scripts/install-sonarqube.sh&quot;
+
+    environment_vars = [
+      &quot;SONARQUBE_VERSION=${var.sonarqube_version}&quot;,
+      &quot;JAVA_PACKAGE=${var.java_package}&quot;,
+    ]
+
+    execute_command = &quot;sudo -E env {{ .Vars }} bash '{{ .Path }}'&quot;
+  }
+}
+EOF</code></pre>
+<p>I moved into the SonarQube image directory so Packer would read that template.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+packer fmt packer/sonarqube
+packer init packer/sonarqube
+
+set -a
+source packer/sonarqube/version.env
+set +a
+
+packer validate \
+  -var 'source_ami_id=ami-REPLACE_WITH_YOUR_ID' \
+  -var 'subnet_id=subnet-REPLACE_WITH_YOUR_ID' \
+  -var 'security_group_id=sg-REPLACE_WITH_YOUR_ID' \
+  -var &quot;sonarqube_version=${SONARQUBE_VERSION}&quot; \
+  -var &quot;java_package=${JAVA_PACKAGE}&quot; \
+  packer/sonarqube</code></pre>
+<p>I saved the following configuration as a complete file. Keeping the file-writing block intact preserves its variables, delimiters and generated contents.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+cat &gt; packer/sonarqube/scripts/install-cloudwatch-agent.sh &lt;&lt;'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORK_DIR=&quot;$(mktemp -d)&quot;
+GNUPGHOME=&quot;$WORK_DIR/gnupg&quot;
+AGENT_URL=&quot;https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb&quot;
+
+cleanup() {
+  rm -rf &quot;$WORK_DIR&quot;
+}
+trap cleanup EXIT
+
+mkdir -m 700 -p &quot;$GNUPGHOME&quot;
+
+curl --fail --silent --show-error --location --retry 3 \
+  --output &quot;$WORK_DIR/amazon-cloudwatch-agent.gpg&quot; \
+  https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg
+
+gpg --batch --homedir &quot;$GNUPGHOME&quot; \
+  --import &quot;$WORK_DIR/amazon-cloudwatch-agent.gpg&quot; &gt;/dev/null
+
+fingerprint=&quot;$(gpg --batch --homedir &quot;$GNUPGHOME&quot; --with-colons --fingerprint \
+  | awk -F: '$1 == &quot;fpr&quot; {print $10; exit}')&quot;
+
+if [[ &quot;$fingerprint&quot; != &quot;937616F3450B7D806CBD9725D58167303B789C72&quot; ]]; then
+  echo &quot;CloudWatch Agent signing-key fingerprint did not match.&quot; &gt;&amp;2
+  exit 1
+fi
+
+curl --fail --silent --show-error --location --retry 3 \
+  --output &quot;$WORK_DIR/amazon-cloudwatch-agent.deb&quot; \
+  &quot;$AGENT_URL&quot;
+
+curl --fail --silent --show-error --location --retry 3 \
+  --output &quot;$WORK_DIR/amazon-cloudwatch-agent.deb.sig&quot; \
+  &quot;${AGENT_URL}.sig&quot;
+
+gpg --batch --homedir &quot;$GNUPGHOME&quot; \
+  --verify &quot;$WORK_DIR/amazon-cloudwatch-agent.deb.sig&quot; \
+  &quot;$WORK_DIR/amazon-cloudwatch-agent.deb&quot;
+
+dpkg -i &quot;$WORK_DIR/amazon-cloudwatch-agent.deb&quot;
+
+install -d -m 0755 /opt/aws/amazon-cloudwatch-agent/etc
+
+cat &gt; /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json &lt;&lt;'JSON'
+{
+  &quot;agent&quot;: {
+    &quot;metrics_collection_interval&quot;: 60
+  },
+  &quot;logs&quot;: {
+    &quot;logs_collected&quot;: {
+      &quot;files&quot;: {
+        &quot;collect_list&quot;: [
+          {
+            &quot;file_path&quot;: &quot;/opt/sonarqube/logs/sonar.log&quot;,
+            &quot;log_group_name&quot;: &quot;/project-3/sonarqube&quot;,
+            &quot;log_stream_name&quot;: &quot;{instance_id}/sonar.log&quot;,
+            &quot;timezone&quot;: &quot;UTC&quot;
+          },
+          {
+            &quot;file_path&quot;: &quot;/opt/sonarqube/logs/web.log&quot;,
+            &quot;log_group_name&quot;: &quot;/project-3/sonarqube&quot;,
+            &quot;log_stream_name&quot;: &quot;{instance_id}/web.log&quot;,
+            &quot;timezone&quot;: &quot;UTC&quot;
+          },
+          {
+            &quot;file_path&quot;: &quot;/opt/sonarqube/logs/ce.log&quot;,
+            &quot;log_group_name&quot;: &quot;/project-3/sonarqube&quot;,
+            &quot;log_stream_name&quot;: &quot;{instance_id}/ce.log&quot;,
+            &quot;timezone&quot;: &quot;UTC&quot;
+          },
+          {
+            &quot;file_path&quot;: &quot;/opt/sonarqube/logs/es.log&quot;,
+            &quot;log_group_name&quot;: &quot;/project-3/sonarqube&quot;,
+            &quot;log_stream_name&quot;: &quot;{instance_id}/es.log&quot;,
+            &quot;timezone&quot;: &quot;UTC&quot;
+          }
+        ]
+      }
+    }
+  },
+  &quot;metrics&quot;: {
+    &quot;namespace&quot;: &quot;Project3/SonarQube&quot;,
+    &quot;metrics_collected&quot;: {
+      &quot;mem&quot;: {
+        &quot;measurement&quot;: [&quot;mem_used_percent&quot;]
+      },
+      &quot;disk&quot;: {
+        &quot;measurement&quot;: [&quot;used_percent&quot;],
+        &quot;resources&quot;: [&quot;/&quot;]
+      }
+    }
+  }
+}
+JSON
+
+chmod 0644 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+EOF</code></pre>
+<p>I kept this setup operation together because its variables, checks and cleanup depend on the same shell session. It prepares or verifies the configuration described in this step.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+python3 - &lt;&lt;'PY'
+from pathlib import Path
+
+path = Path(&quot;packer/sonarqube/sonarqube.pkr.hcl&quot;)
+text = path.read_text()
+
+if &quot;install-cloudwatch-agent.sh&quot; in text:
+    raise SystemExit(&quot;CloudWatch provisioner is already present.&quot;)
+
+insert_at = text.rfind(&quot;\n}&quot;)
+if insert_at &lt; 0:
+    raise SystemExit(&quot;Could not find the end of the Packer build block.&quot;)
+
+block = &quot;&quot;&quot;
+  provisioner &quot;shell&quot; {
+    script          = &quot;${path.root}/scripts/install-cloudwatch-agent.sh&quot;
+    execute_command = &quot;sudo -E bash '{{ .Path }}'&quot;
+  }
+&quot;&quot;&quot;
+
+path.write_text(text[:insert_at] + block + text[insert_at:])
+PY
+
+packer fmt packer/sonarqube
+grep -n -A5 'install-cloudwatch-agent.sh' packer/sonarqube/sonarqube.pkr.hcl</code></pre>
+<p>I moved into the SonarQube image directory so Packer would read that template.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+set -a
+source packer/sonarqube/version.env
+set +a
+
+AWS_PROFILE=project-3-packer AWS_REGION=us-east-1 packer build \
+  -var 'source_ami_id=ami-REPLACE_WITH_YOUR_ID' \
+  -var 'subnet_id=subnet-REPLACE_WITH_YOUR_ID' \
+  -var 'security_group_id=sg-REPLACE_WITH_YOUR_ID' \
+  -var &quot;sonarqube_version=${SONARQUBE_VERSION}&quot; \
+  -var &quot;java_package=${JAVA_PACKAGE}&quot; \
+  packer/sonarqube</code></pre>
+<p>Those are the initial build steps. The first service definition was later replaced with the baked startup helper. I followed the immutable rebuild loop in step 20 for the corrected image instead of copying the original service definition back over the final files.</p>
+<h3 id="walkthrough-10">10. Create the scanner runner image with pinned tools</h3>
+<p>With the application and analysis-server images defined, the remaining image was the runner that would execute the security tools.</p>
+<p>A separate runner image kept scanner software off the target application and SonarQube hosts. Baking the tools made a replacement repeatable instead of depending on live package installation.</p>
+<p>I built a third AMI for the AWS scanner runner. I pinned the runner, Gitleaks, SonarScanner, Dependency-Check, ZAP, Terraform, AWS CLI and Java versions. Subsequent image-build fixes added Node.js/npm and tested tool execution as <code>actions-runner</code>. I did not install Gitleaks in WSL to satisfy a workflow intended to run in AWS.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I created the directories needed for the next files, keeping the build and infrastructure components separate.</p>
+<pre class="story-code"><code>mkdir -p packer/github-runner/scripts</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+cat &gt; packer/github-runner/versions.env &lt;&lt;'EOF'
+GITHUB_RUNNER_VERSION=2.338.2
+GITLEAKS_VERSION=8.30.0
+SONAR_SCANNER_VERSION=8.1.0.6389
+DEPENDENCY_CHECK_VERSION=13.0.0
+ZAP_VERSION=2.17.0
+TERRAFORM_VERSION=1.16.2
+AWS_CLI_VERSION=2.39.1
+JAVA_PACKAGE=openjdk-21-jdk
+EOF</code></pre>
+<p>I opened the named file in the editor to save the configuration for this component.</p>
+<pre class="story-code"><code>nano packer/github-runner/scripts/install-runner.sh</code></pre>
+<p>I used this Terraform configuration to define the next resource or input in version control before planning a change.</p>
+<pre class="story-code"><code>packer {
+  required_plugins {
+    amazon = {
+      source  = &quot;github.com/hashicorp/amazon&quot;
+      version = &quot;&gt;= 1.8.3, &lt; 1.9.0&quot;
+    }
+  }
+}
+
+variable &quot;aws_region&quot; {
+  type    = string
+  default = &quot;us-east-1&quot;
+}
+
+variable &quot;source_ami_id&quot; {
+  type    = string
+  default = &quot;ami-REPLACE_WITH_YOUR_ID&quot;
+}
+
+variable &quot;subnet_id&quot; {
+  type    = string
+  default = &quot;subnet-REPLACE_WITH_YOUR_ID&quot;
+}
+
+variable &quot;security_group_id&quot; {
+  type    = string
+  default = &quot;sg-REPLACE_WITH_YOUR_ID&quot;
+}
+
+variable &quot;builder_instance_profile&quot; {
+  type    = string
+  default = &quot;project-3-packer-builder-profile&quot;
+}
+
+variable &quot;builder_instance_type&quot; {
+  type    = string
+  default = &quot;t3.small&quot;
+}
+
+variable &quot;github_runner_version&quot; {
+  type = string
+}
+
+variable &quot;gitleaks_version&quot; {
+  type = string
+}
+
+variable &quot;sonar_scanner_version&quot; {
+  type = string
+}
+
+variable &quot;dependency_check_version&quot; {
+  type = string
+}
+
+variable &quot;zap_version&quot; {
+  type = string
+}
+
+variable &quot;terraform_version&quot; {
+  type = string
+}
+
+variable &quot;aws_cli_version&quot; {
+  type = string
+}
+
+variable &quot;java_package&quot; {
+  type = string
+}
+
+source &quot;amazon-ebs&quot; &quot;github_runner&quot; {
+  region                      = var.aws_region
+  source_ami                  = var.source_ami_id
+  instance_type               = var.builder_instance_type
+  subnet_id                   = var.subnet_id
+  security_group_id           = var.security_group_id
+  associate_public_ip_address = true
+
+  iam_instance_profile = var.builder_instance_profile
+  communicator         = &quot;ssh&quot;
+  ssh_interface        = &quot;session_manager&quot;
+  ssh_username         = &quot;ubuntu&quot;
+  ssh_timeout          = &quot;30m&quot;
+  ssh_clear_authorized_keys = true
+
+  ami_name        = &quot;project-3-github-runner-ubuntu-24-04-{{timestamp}}&quot;
+  ami_description = &quot;Hardened Ubuntu 24.04 AMI with unregistered Project 3 GitHub Actions runner and security tools&quot;
+
+  metadata_options {
+    http_endpoint = &quot;enabled&quot;
+    http_tokens   = &quot;required&quot;
+  }
+
+  launch_block_device_mappings {
+    device_name           = &quot;/dev/sda1&quot;
+    volume_size           = 25
+    volume_type           = &quot;gp3&quot;
+    encrypted             = true
+    delete_on_termination = true
+  }
+
+  run_tags = {
+    Project = &quot;project-3-secure-cicd-pipeline&quot;
+    Purpose = &quot;temporary-packer-builder&quot;
+  }
+
+  tags = {
+    Project = &quot;project-3-secure-cicd-pipeline&quot;
+    Image   = &quot;github-runner&quot;
+    OS      = &quot;ubuntu-24.04&quot;
+  }
+}
+
+build {
+  name    = &quot;github-runner-ami&quot;
+  sources = [&quot;source.amazon-ebs.github_runner&quot;]
+
+  provisioner &quot;shell&quot; {
+    script = &quot;${path.root}/scripts/install-runner.sh&quot;
+
+    environment_vars = [
+      &quot;GITHUB_RUNNER_VERSION=${var.github_runner_version}&quot;,
+      &quot;GITLEAKS_VERSION=${var.gitleaks_version}&quot;,
+      &quot;SONAR_SCANNER_VERSION=${var.sonar_scanner_version}&quot;,
+      &quot;DEPENDENCY_CHECK_VERSION=${var.dependency_check_version}&quot;,
+      &quot;ZAP_VERSION=${var.zap_version}&quot;,
+      &quot;TERRAFORM_VERSION=${var.terraform_version}&quot;,
+      &quot;AWS_CLI_VERSION=${var.aws_cli_version}&quot;,
+      &quot;JAVA_PACKAGE=${var.java_package}&quot;
+    ]
+
+    execute_command = &quot;sudo -E env {{ .Vars }} bash '{{ .Path }}'&quot;
+  }
+}</code></pre>
+<p>I initialized the template's declared Packer plugin before validating or building the image.</p>
+<pre class="story-code"><code>packer init packer/github-runner</code></pre>
+<p>I exported the pinned version settings so the following Packer command received the same tool versions as the build definition.</p>
+<pre class="story-code"><code>set -a
+source packer/github-runner/versions.env
+set +a
+
+packer validate \
+  -var &quot;github_runner_version=$GITHUB_RUNNER_VERSION&quot; \
+  -var &quot;gitleaks_version=$GITLEAKS_VERSION&quot; \
+  -var &quot;sonar_scanner_version=$SONAR_SCANNER_VERSION&quot; \
+  -var &quot;dependency_check_version=$DEPENDENCY_CHECK_VERSION&quot; \
+  -var &quot;zap_version=$ZAP_VERSION&quot; \
+  -var &quot;terraform_version=$TERRAFORM_VERSION&quot; \
+  -var &quot;aws_cli_version=$AWS_CLI_VERSION&quot; \
+  -var &quot;java_package=$JAVA_PACKAGE&quot; \
+  packer/github-runner</code></pre>
+<p>I started the image build with the Packer operator role and the selected inputs. Provisioning runs on the temporary builder; it is not a repair command for a deployed host.</p>
+<pre class="story-code"><code>set -a
+source packer/github-runner/versions.env
+set +a
+
+AWS_PROFILE=project-3-packer packer build \
+  -var &quot;github_runner_version=$GITHUB_RUNNER_VERSION&quot; \
+  -var &quot;gitleaks_version=$GITLEAKS_VERSION&quot; \
+  -var &quot;sonar_scanner_version=$SONAR_SCANNER_VERSION&quot; \
+  -var &quot;dependency_check_version=$DEPENDENCY_CHECK_VERSION&quot; \
+  -var &quot;zap_version=$ZAP_VERSION&quot; \
+  -var &quot;terraform_version=$TERRAFORM_VERSION&quot; \
+  -var &quot;aws_cli_version=$AWS_CLI_VERSION&quot; \
+  -var &quot;java_package=$JAVA_PACKAGE&quot; \
+  packer/github-runner</code></pre>
+<p>The <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/packer/github-runner/scripts/install-runner.sh">runner installer</a> and <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/packer/github-runner/github-runner.pkr.hcl">Packer template</a> define the runner build. A runner AMI contains software, not a permanent GitHub registration token.</p>
+<h3 id="walkthrough-11">11. Commit the image build files</h3>
+<p>Before moving from images to infrastructure, I checked the build files into Git so the work had a traceable source.</p>
+<p>I checked the Packer files before staging them. My first commit failed because Git had no author name; I set the repository's author from my authenticated GitHub account, committed again and pushed. A later 403 on push required fixing GitHub write permission, rather than changing AWS access.</p>
+<pre class="story-code"><code>git status --short</code></pre>
+<p>I listed the relevant files to confirm what existed before moving to the next step.</p>
+<pre class="story-code"><code>find packer -maxdepth 4 -type f -print | sort</code></pre>
+<p>I staged the intended files so the next commit contained the change I had just reviewed.</p>
+<pre class="story-code"><code>git add packer</code></pre>
+<p>I reviewed the proposed file changes before staging, committing or applying the policy.</p>
+<pre class="story-code"><code>git diff --cached --stat</code></pre>
+<p>I checked the working tree to see which files had changed and whether my branch tracked the intended remote.</p>
+<pre class="story-code"><code>git status --short</code></pre>
+<p>I read my authenticated GitHub login to configure the repository's commit author.</p>
+<pre class="story-code"><code>gh_user=&quot;$(gh api user --jq .login)&quot;</code></pre>
+<p>I read my authenticated GitHub login to configure the repository's commit author.</p>
+<pre class="story-code"><code>gh_user_id=&quot;$(gh api user --jq .id)&quot;</code></pre>
+<p>I set the local commit author so Git could record the change.</p>
+<pre class="story-code"><code>git config user.name &quot;$gh_user&quot;</code></pre>
+<p>I set the local commit email to my GitHub noreply identity.</p>
+<pre class="story-code"><code>git config user.email &quot;${gh_user_id}+${gh_user}@users.noreply.github.com&quot;</code></pre>
+<p>I recorded the reviewed change in Git before publishing it.</p>
+<pre class="story-code"><code>git commit -m &quot;Add hardened Packer AMI builds for Lab 3&quot;</code></pre>
+<p>I recorded the reviewed change in Git before publishing it.</p>
+<pre class="story-code"><code>git commit -m &quot;Add hardened Packer AMI builds for Lab 3&quot;</code></pre>
+<p>I checked the active GitHub account and authentication status before retrying repository operations.</p>
+<pre class="story-code"><code>gh auth status --hostname github.com</code></pre>
+<p>I pushed the commit so GitHub Actions and pull-request review could use the same version of the files.</p>
+<pre class="story-code"><code>git push origin master</code></pre>
+<p>I checked the working tree to see which files had changed and whether my branch tracked the intended remote.</p>
+<pre class="story-code"><code>git status --short --branch</code></pre>
+<h3 id="walkthrough-12">12. Split Terraform into independent roots</h3>
+<p>The images defined what would run on each host; Terraform would now define the AWS resources around those hosts.</p>
+<p>I introduced Terraform to describe the AWS infrastructure surrounding the images. Separate roots made ownership, state and dependency order explicit.</p>
+<p>I created five separate Terraform root directories. Each root is an independently executed configuration with its own state: <strong>network</strong> owns the VPC, subnets, routes and security groups; <strong>database</strong> owns RDS; <strong>observability</strong> owns log groups and SNS; <strong>compute</strong> owns Juice Shop and the scanner runner; and <strong>sonarqube</strong> owns the SonarQube instance. At this point only network and database contained files—empty directories were not missing Git commits.</p>
+<p>I made this choice to give each layer a clear responsibility and to limit the scope of routine changes. For example, I can review a change to log groups in the observability root without placing every network and database resource in the same plan. Each root has its own state key and lock, so unrelated roots can run independently where their dependencies allow it. Separate state does not isolate the resources themselves: changing or destroying a network can still affect everything that depends on it.</p>
+<p>This distinction matters as an environment grows. A single root managing thousands of resources can produce a large state, take longer to refresh and plan, and create a review with many possible changes. Its state lock can also make unrelated operations wait on the same configuration. A broad apply or a mistake in that root may affect a larger part of the environment. Dividing infrastructure into sensible ownership and lifecycle boundaries can make plans easier to review, reduce lock contention and narrow the scope of an operation. The actual performance and risk depend on the resources, provider operations and how the boundaries are designed; separate roots are not automatically faster or safer in every case.</p>
+<p>A long Terraform <strong>file</strong> and a large Terraform <strong>state</strong> are different problems. Terraform combines all <code>.tf</code> files in the same directory into one root configuration. Splitting one long file into <code>network.tf</code>, <code>routing.tf</code> and other files improves readability, but those files still share one state and one lock. Creating separate root directories with separately configured backends is what gives each layer its own state.</p>
+<p>The trade-off is coordination. Downstream roots need the correct upstream outputs, deployment order and access to the required state or published outputs. I deployed the network first, then the layers that depend on it, and allowed independent work to run in parallel where the workflow supported it. In production I would choose boundaries around ownership, access and lifecycle rather than create a separate state for every resource, and I would protect state because it can contain sensitive information.</p>
+<p>I began by creating the directories:</p>
+<pre class="story-code"><code>mkdir -p terraform/network terraform/database terraform/compute terraform/sonarqube terraform/observability</code></pre>
+<p>I opened the named file in the editor to save the configuration for this component.</p>
+<pre class="story-code"><code>nano terraform/.gitignore</code></pre>
+<p>I added these ignore patterns so local provider files, state and plan files would not be staged with the infrastructure code.</p>
+<pre class="story-code"><code>**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.lock.info
+*.tfvars
+*.tfvars.json
+*.tfplan
+crash.log
+crash.*.log</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I listed the relevant files to confirm what existed before moving to the next step.</p>
+<pre class="story-code"><code>find terraform -maxdepth 3 -type f \
+  ! -path '*/.terraform/*' \
+  ! -name 'terraform.tfstate*' \
+  ! -name '*.tfplan' \
+  -print | sort</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I listed the relevant files to confirm what existed before moving to the next step.</p>
+<pre class="story-code"><code>find terraform/compute terraform/sonarqube terraform/observability \
+  -maxdepth 2 -type f -print 2&gt;/dev/null | sort</code></pre>
+<p>I kept the definitions in the <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/terraform/network">network</a>, <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/terraform/database">database</a>, <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/terraform/compute">compute</a>, <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/terraform/observability">observability</a> and <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/terraform/sonarqube">SonarQube</a> roots. Separate roots mean separate state and explicit execution order, not that Terraform automatically runs every directory.</p>
+<h3 id="walkthrough-13">13. Validate and test the original network layer manually</h3>
+<p>With the Terraform roots separated, I tested the network root first because the other layers depended on it.</p>
+<p>These manual Terraform runs were initial infrastructure tests before I automated execution. They were a development stage, not the final routine deployment process.</p>
+<p>During the initial build I ran Terraform locally to test the network root. I used two public and two private subnets in <code>10.20.0.0/16</code> and selected interface VPC endpoints. The plan initially showed 14 resources, then 21 after the remaining security groups were added. This manual stage is part of the history; it is not the final routine deployment method.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network init</code></pre>
+<p>I validated this root's Terraform configuration before planning resources.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network validate</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I formatted this root's Terraform files to make the next review consistent.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network fmt</code></pre>
+<p>I validated this root's Terraform configuration before planning resources.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network validate</code></pre>
+<p>I used this Terraform configuration to define the next resource or input in version control before planning a change.</p>
+<pre class="story-code"><code>aws_region = &quot;us-east-1&quot;
+
+project_name = &quot;project-3-secure-cicd-pipeline&quot;
+
+vpc_cidr = &quot;10.20.0.0/16&quot;
+
+availability_zones = [
+  &quot;us-east-1a&quot;,
+  &quot;us-east-1b&quot;,
+]
+
+public_subnet_cidrs = [
+  &quot;10.20.1.0/24&quot;,
+  &quot;10.20.2.0/24&quot;,
+]
+
+private_subnet_cidrs = [
+  &quot;10.20.11.0/24&quot;,
+  &quot;10.20.12.0/24&quot;,
+]</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>In the initial manual test, I applied the reviewed root configuration. Routine execution later moved into the workflow.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network apply</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>In the initial manual test, I applied the reviewed root configuration. Routine execution later moved into the workflow.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network apply</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I formatted this root's Terraform files to make the next review consistent.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network fmt</code></pre>
+<p>I validated this root's Terraform configuration before planning resources.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network validate</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>In the initial manual test, I applied the reviewed root configuration. Routine execution later moved into the workflow.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/network apply</code></pre>
+<h3 id="walkthrough-14">14. Create and test the original SonarQube database layer</h3>
+<p>The network established the subnet and security-group outputs needed to place SonarQube's database.</p>
+<p>RDS kept SonarQube's persistent database separate from its replaceable EC2 server. Terraform provisions that managed service; Packer builds the server image.</p>
+<p>I checked orderable PostgreSQL 17 versions, wrote the RDS and subnet-group files, and validated the database root before its original manual apply. RDS is a managed service, so it was created by Terraform, not baked by Packer. The recorded class was <code>db.t4g.micro</code>; the database was encrypted and private.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I read the saved file back to confirm its contents before continuing.</p>
+<pre class="story-code"><code>cat packer/sonarqube/version.env</code></pre>
+<p>I used this AWS API call to inspect or configure the specific identity or resource required by the current step.</p>
+<pre class="story-code"><code>aws rds describe-orderable-db-instance-options \
+  --engine postgres \
+  --db-instance-class db.t4g.micro \
+  --vpc \
+  --region us-east-1 \
+  --profile mds-devsecops-lab \
+  --query &quot;OrderableDBInstanceOptions[?starts_with(EngineVersion, '17.')].EngineVersion&quot; \
+  --output text</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I opened the named file in the editor to save the configuration for this component.</p>
+<pre class="story-code"><code>nano terraform/database/terraform.tfvars</code></pre>
+<p>I used this Terraform configuration to define the next resource or input in version control before planning a change.</p>
+<pre class="story-code"><code>db_engine_version = &quot;17.11&quot;
+db_instance_class = &quot;db.t4g.micro&quot;</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I opened the named file in the editor to save the configuration for this component.</p>
+<pre class="story-code"><code>nano terraform/database/database.tf</code></pre>
+<p>I used this Terraform configuration to define the next resource or input in version control before planning a change.</p>
+<pre class="story-code"><code>resource &quot;aws_db_instance&quot; &quot;sonarqube&quot; {
+  identifier = var.db_identifier
+
+  engine         = &quot;postgres&quot;
+  engine_version = var.db_engine_version
+  instance_class = var.db_instance_class
+
+  db_name  = var.db_name
+  username = var.db_master_username
+  port     = 5432
+
+  manage_master_user_password = true
+
+  allocated_storage = 20
+  storage_type      = &quot;gp3&quot;
+  storage_encrypted = true
+
+  db_subnet_group_name   = aws_db_subnet_group.sonarqube.name
+  vpc_security_group_ids = [
+    data.terraform_remote_state.network.outputs.database_security_group_id
+  ]
+  publicly_accessible = false
+
+  multi_az                   = false
+  backup_retention_period    = 0
+  auto_minor_version_upgrade = true
+
+  enabled_cloudwatch_logs_exports = [&quot;postgresql&quot;, &quot;upgrade&quot;]
+
+  deletion_protection = false
+  skip_final_snapshot = true
+  copy_tags_to_snapshot = true
+
+  tags = {
+    Name        = var.db_identifier
+    Project     = var.project_name
+    Environment = &quot;lab&quot;
+    ManagedBy   = &quot;Terraform&quot;
+  }
+}</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I opened the named file in the editor to save the configuration for this component.</p>
+<pre class="story-code"><code>nano terraform/database/outputs.tf</code></pre>
+<p>I used this Terraform configuration to define the next resource or input in version control before planning a change.</p>
+<pre class="story-code"><code>output &quot;db_instance_identifier&quot; {
+  description = &quot;Identifier of the SonarQube PostgreSQL instance.&quot;
+  value       = aws_db_instance.sonarqube.identifier
+}
+
+output &quot;db_address&quot; {
+  description = &quot;Private endpoint hostname for the SonarQube PostgreSQL instance.&quot;
+  value       = aws_db_instance.sonarqube.address
+}
+
+output &quot;db_port&quot; {
+  description = &quot;Port used by the SonarQube PostgreSQL instance.&quot;
+  value       = aws_db_instance.sonarqube.port
+}
+
+output &quot;db_name&quot; {
+  description = &quot;Database name created for SonarQube.&quot;
+  value       = aws_db_instance.sonarqube.db_name
+}
+
+output &quot;master_user_secret_arn&quot; {
+  description = &quot;Secrets Manager ARN for the RDS-managed database credentials.&quot;
+  value       = aws_db_instance.sonarqube.master_user_secret[0].secret_arn
+}</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I formatted this root's Terraform files to make the next review consistent.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/database fmt</code></pre>
+<p>I initialized this Terraform root with its configured provider and backend before validation or state recovery.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/database init</code></pre>
+<p>I validated this root's Terraform configuration before planning resources.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/database validate</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>In the initial manual test, I applied the reviewed root configuration. Routine execution later moved into the workflow.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/database apply</code></pre>
+<p>My original state reference was local. I later changed both roots to S3-backed state for GitHub execution. I did not treat an existing AWS database as automatically managed just because another backend was empty; that caused the import challenge recorded below.</p>
+<h3 id="walkthrough-15">15. Move routine Terraform execution into GitHub Actions</h3>
+<p>Those initial local tests gave me infrastructure code to automate. I then moved routine execution into GitHub Actions.</p>
+<p>GitHub Actions replaced repeated routine deployment commands with checked-in jobs. The reusable layer workflow runs the same plan-and-apply logic for each root.</p>
+<p>I kept the five roots but put the repeated init/plan/apply logic in <code>terraform-layer.yml</code>. The deployment workflow calls it in dependency order. GitHub-hosted runners were explicitly allowed for Terraform; security scanners stayed on the AWS runner. I committed the roots and workflows so a runner could actually check out the same code I had tested.</p>
+<pre class="story-code"><code>git add -A</code></pre>
+<p>I checked the diff for whitespace errors before committing.</p>
+<pre class="story-code"><code>git diff --cached --check</code></pre>
+<p>I reviewed the proposed file changes before staging, committing or applying the policy.</p>
+<pre class="story-code"><code>git diff --cached --stat</code></pre>
+<p>I reviewed the proposed file changes before staging, committing or applying the policy.</p>
+<pre class="story-code"><code>git diff --cached --name-only</code></pre>
+<p>I staged the intended files so the next commit contained the change I had just reviewed.</p>
+<pre class="story-code"><code>git add -A</code></pre>
+<p>I checked the working tree to see which files had changed and whether my branch tracked the intended remote.</p>
+<pre class="story-code"><code>git status --short</code></pre>
+<p>I checked the diff for whitespace errors before committing.</p>
+<pre class="story-code"><code>git diff --cached --check &amp;&amp; git commit -m &quot;Add Terraform CI and AWS Gitleaks workflow&quot;</code></pre>
+<p>I pushed the commit so GitHub Actions and pull-request review could use the same version of the files.</p>
+<pre class="story-code"><code>git push origin master</code></pre>
+<p>I moved Gitleaks to its <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/.github/workflows/gitleaks-aws.yml">AWS scanner workflow</a> and retained formatting, validation and Checkov in Terraform validation. Pull requests validate without AWS deployment credentials; trusted post-merge or manual workflow deployment uses OIDC.</p>
+<h3 id="walkthrough-16">16. Bootstrap the private remote-state bucket</h3>
+<p>The workflow needed durable state before it could initialize the roots, so I prepared the remote backend next.</p>
+<p>A disposable workflow runner cannot be the permanent home of Terraform state. S3 keeps the state between runs, and native locking protects each state against concurrent writes.</p>
+<p>Before GitHub could initialize an S3 backend, I created the state bucket with the repository bootstrap script. This was a one-time AWS CLI bootstrap, not a Terraform root. The script enables versioning and encryption, blocks public access and rejects insecure transport. Each root uses <code>project-3/&lt;root&gt;/terraform.tfstate</code> with native <code>.tflock</code> locking.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity --profile mds-devsecops-lab</code></pre>
+<p>I ran the one-time state-bucket bootstrap with the IAM-user profile. This prepared the workflow backend without deploying compute resources.</p>
+<pre class="story-code"><code>AWS_PROFILE=mds-devsecops-lab AWS_REGION=us-east-1 \
+  ./scripts/bootstrap-terraform-state.sh</code></pre>
+<p>I verified that the Terraform state bucket existed and was accessible before starting backend initialization.</p>
+<pre class="story-code"><code>aws s3api head-bucket \
+  --bucket project-3-tfstate-YOUR_ACCOUNT_ID-us-east-1 \
+  --expected-bucket-owner YOUR_ACCOUNT_ID \
+  --profile mds-devsecops-lab \
+  --region us-east-1</code></pre>
+<h3 id="walkthrough-17">17. Create the OIDC provider and Terraform roles</h3>
+<p>With remote state available, I could configure how eligible GitHub jobs would authenticate to AWS.</p>
+<p>OIDC let a trusted GitHub job obtain temporary AWS credentials instead of storing an AWS access key. The plan and apply roles have separate trust and permission scopes.</p>
+<p>I created the GitHub OIDC provider and separate plan/apply roles, validated their permission documents with Access Analyzer, and attached the policies. Access Analyzer returned <code>[]</code> in that check; that meant it found no reported policy issues, not that every future AWS operation had been proven to work.</p>
+<pre class="story-code"><code>aws iam list-open-id-connect-providers \
+  --profile mds-devsecops-lab \
+  --query 'OpenIDConnectProviderList[].Arn' \
+  --output table</code></pre>
+<p>I registered GitHub's OIDC issuer and STS audience for workflow federation.</p>
+<pre class="story-code"><code>aws iam create-open-id-connect-provider \
+  --url https://token.actions.githubusercontent.com \
+  --client-id-list sts.amazonaws.com \
+  --profile mds-devsecops-lab \
+  --no-cli-pager</code></pre>
+<p>I read back the configured issuer and audience to verify the provider.</p>
+<pre class="story-code"><code>aws iam get-open-id-connect-provider \
+  --open-id-connect-provider-arn arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com \
+  --profile mds-devsecops-lab \
+  --query '{Url:Url,ClientIDList:ClientIDList}' \
+  --output json</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+set -euo pipefail
+
+aws iam create-role \
+  --role-name project-3-terraform-plan-role \
+  --assume-role-policy-document file://iam/terraform-github-oidc/plan-trust.json \
+  --description &quot;GitHub Actions OIDC role for Terraform planning&quot; \
+  --profile mds-devsecops-lab \
+  --no-cli-pager
+
+aws iam create-role \
+  --role-name project-3-terraform-apply-role \
+  --assume-role-policy-document file://iam/terraform-github-oidc/apply-trust.json \
+  --description &quot;GitHub Actions OIDC role for approved Terraform applies&quot; \
+  --profile mds-devsecops-lab \
+  --no-cli-pager</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+set -euo pipefail
+
+for policy in \
+  iam/terraform-github-oidc/plan-permissions.json \
+  iam/terraform-github-oidc/apply-permissions.json
+do
+  echo &quot;Validating $policy&quot;
+  aws accessanalyzer validate-policy \
+    --policy-type IDENTITY_POLICY \
+    --policy-document &quot;file://$policy&quot; \
+    --profile mds-devsecops-lab \
+    --region us-east-1 \
+    --query 'findings[].{Type:findingType,Code:issueCode,Details:findingDetails}' \
+    --output json \
+    --no-cli-pager
+done</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+set -euo pipefail
+
+aws iam put-role-policy \
+  --role-name project-3-terraform-plan-role \
+  --policy-name project-3-terraform-plan-policy \
+  --policy-document file://iam/terraform-github-oidc/plan-permissions.json \
+  --profile mds-devsecops-lab \
+  --no-cli-pager
+
+aws iam put-role-policy \
+  --role-name project-3-terraform-apply-role \
+  --policy-name project-3-terraform-apply-policy \
+  --policy-document file://iam/terraform-github-oidc/apply-permissions.json \
+  --profile mds-devsecops-lab \
+  --no-cli-pager
+
+aws iam list-role-policies \
+  --role-name project-3-terraform-plan-role \
+  --profile mds-devsecops-lab \
+  --output table
+
+aws iam list-role-policies \
+  --role-name project-3-terraform-apply-role \
+  --profile mds-devsecops-lab \
+  --output table</code></pre>
+<p>I saved this non-secret workflow variable so the checked-in automation could find the intended backend or role.</p>
+<pre class="story-code"><code>gh variable set TF_STATE_BUCKET \
+  --repo DelaneKay/project-3-secure-cicd-pipeline \
+  --body &quot;project-3-tfstate-YOUR_ACCOUNT_ID-us-east-1&quot;</code></pre>
+<p>I saved this non-secret workflow variable so the checked-in automation could find the intended backend or role.</p>
+<pre class="story-code"><code>gh variable set AWS_TERRAFORM_PLAN_ROLE_ARN \
+  --repo DelaneKay/project-3-secure-cicd-pipeline \
+  --body &quot;arn:aws:iam::YOUR_ACCOUNT_ID:role/project-3-terraform-plan-role&quot;</code></pre>
+<p>I saved this non-secret workflow variable so the checked-in automation could find the intended backend or role.</p>
+<pre class="story-code"><code>gh variable set AWS_TERRAFORM_APPLY_ROLE_ARN \
+  --repo DelaneKay/project-3-secure-cicd-pipeline \
+  --body &quot;arn:aws:iam::YOUR_ACCOUNT_ID:role/project-3-terraform-apply-role&quot;</code></pre>
+<h3 id="walkthrough-18">18. Configure deployment approval and runner registration</h3>
+<p>After establishing the workflow identities, I added the review gate and the registration path for a new scanner runner.</p>
+<p>The protected environment introduced a review point before infrastructure changes. A GitHub App supplied short-lived registration credentials for a new runner without putting a permanent token in an AMI.</p>
+<p>In GitHub Settings → Environments, I created <code>terraform-lab-apply</code>, restricted deployment to <code>master</code>, added <code>DelaneKay</code> as required reviewer, left Prevent self-review unchecked for this solo lab, disabled administrator bypass and saved. I reviewed each readable Terraform plan before approving its saved-plan apply. These were browser actions, so I do not invent a terminal command that claims to have performed them.</p>
+<pre class="story-code"><code>gh variable set TF_STATE_BUCKET \
+  --repo DelaneKay/project-3-secure-cicd-pipeline \
+  --body &quot;project-3-tfstate-YOUR_ACCOUNT_ID-us-east-1&quot;</code></pre>
+<p>I saved this non-secret workflow variable so the checked-in automation could find the intended backend or role.</p>
+<pre class="story-code"><code>gh variable set AWS_TERRAFORM_PLAN_ROLE_ARN \
+  --repo DelaneKay/project-3-secure-cicd-pipeline \
+  --body &quot;arn:aws:iam::YOUR_ACCOUNT_ID:role/project-3-terraform-plan-role&quot;</code></pre>
+<p>I saved this non-secret workflow variable so the checked-in automation could find the intended backend or role.</p>
+<pre class="story-code"><code>gh variable set AWS_TERRAFORM_APPLY_ROLE_ARN \
+  --repo DelaneKay/project-3-secure-cicd-pipeline \
+  --body &quot;arn:aws:iam::YOUR_ACCOUNT_ID:role/project-3-terraform-apply-role&quot;</code></pre>
+<p>I also created a GitHub App, selected only this repository, granted repository Administration write, generated its PEM key and installed it. I stored <code>RUNNER_GITHUB_APP_ID</code> and <code>RUNNER_GITHUB_APP_PRIVATE_KEY</code> as Actions secrets, never in Git. The workflow creates a short-lived registration token, places it in SSM SecureString, and the new runner consumes it at first boot. The exact implementation is in <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/.github/workflows/terraform-layer.yml">terraform-layer.yml</a>; I inspect the workflow rather than manually placing a registration token in Terraform state.</p>
+<h3 id="walkthrough-19">19. Run the standalone Terraform deployment and verify AWS resources</h3>
+<p>With state, authentication and approvals configured, I could test the standalone deployment end to end.</p>
+<p>I tested infrastructure deployment on its own before calling it from the combined pipeline. The scanner runner and SonarQube platform must exist before application scans can use them.</p>
+<p>I first ran <code>Terraform deployment</code> on <code>master</code>, approved the layer plans and checked the resulting EC2 and RDS resources. Networking applied first, then database and observability could progress independently; compute and SonarQube waited for their required upstream state. A first deployment needs this ordering because outputs do not exist before the upstream apply.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity \
+  --profile mds-devsecops-lab</code></pre>
+<p>I listed the matching EC2 instances to obtain the current IDs, state and addresses.</p>
+<pre class="story-code"><code>aws ec2 describe-instances \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters &quot;Name=tag:Project,Values=project-3-secure-cicd-pipeline&quot; \
+            &quot;Name=instance-state-name,Values=pending,running,stopping,stopped&quot; \
+  --query 'Reservations[].Instances[].{Name:Tags[?Key==`Name`]|[0].Value,InstanceId:InstanceId,State:State.Name,Type:InstanceType,PrivateIP:PrivateIpAddress}' \
+  --output table</code></pre>
+<p>I inspected the existing database before deciding whether the issue concerned creation, state ownership or cleanup.</p>
+<pre class="story-code"><code>aws rds describe-db-instances \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --db-instance-identifier project-3-sonarqube \
+  --query 'DBInstances[].{Status:DBInstanceStatus,Class:DBInstanceClass,Endpoint:Endpoint.Address,Encrypted:StorageEncrypted}' \
+  --output table</code></pre>
+<p>I checked whether the current instances had registered with Systems Manager and were online.</p>
+<pre class="story-code"><code>aws ssm describe-instance-information \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --query 'InstanceInformationList[].{InstanceId:InstanceId,PingStatus:PingStatus,Platform:PlatformName}' \
+  --output table</code></pre>
+<p>In GitHub I used Actions → Terraform deployment → Run workflow → master. The later combined pipeline reuses this deployment workflow. A green Terraform job proves resource operations succeeded; I still checked the application and SonarQube health separately.</p>
+<h3 id="walkthrough-20">20. Preserve immutability when a service fails</h3>
+<p>Resource creation succeeded, but service health still needed verification. The following failures tested whether I would preserve the immutable deployment rule.</p>
+<p>I kept the immutable rule during troubleshooting: diagnose, change the Packer source, rebuild and replace. The permission commands below belong in the temporary image build, not on the deployed host as a repair.</p>
+<p>SonarQube repeatedly failed to listen on port 9000 even when systemd reported activating. I used SSM for read-only diagnostics, fixed the Packer source, rebuilt an AMI and let Terraform replace the instance. I did not turn a successful diagnosis into a permanent patch on the deployed server. These permission commands belong inside the image build, followed by the non-root execution test.</p>
+<pre class="story-code"><code>chown -R root:root /usr/local/aws-cli</code></pre>
+<p>Inside the image build, I made the AWS CLI installation readable and executable by the intended service account without granting it write access.</p>
+<pre class="story-code"><code>chmod -R a+rX,u+w,go-w /usr/local/aws-cli</code></pre>
+<p>I tested the executable as the actual service account during image preparation, because a command working as root did not prove that the service could run it.</p>
+<pre class="story-code"><code>runuser -u sonarqube -- /bin/bash -c \
+  'test -x /usr/local/aws-cli/v2/current/bin/aws &amp;&amp;
+   /usr/local/aws-cli/v2/current/bin/aws --version'</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I selected the branch containing the reviewed configuration.</p>
+<pre class="story-code"><code>git switch master</code></pre>
+<p>I fast-forwarded the checkout to the reviewed remote version before building or updating a policy.</p>
+<pre class="story-code"><code>git pull --ff-only</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity \
+  --profile project-3-packer \
+  --query Arn \
+  --output text</code></pre>
+<p>I started the image build with the Packer operator role and the selected inputs. Provisioning runs on the temporary builder; it is not a repair command for a deployed host.</p>
+<pre class="story-code"><code>AWS_PROFILE=project-3-packer packer build \
+  -var 'source_ami_id=ami-REPLACE_WITH_YOUR_ID' \
+  -var 'subnet_id=subnet-REPLACE_WITH_YOUR_ID' \
+  -var 'security_group_id=sg-REPLACE_WITH_YOUR_ID' \
+  -var 'sonarqube_version=26.10.0.133078' \
+  -var 'java_package=openjdk-21-jdk' \
+  packer/sonarqube/</code></pre>
+<p>The final successful SonarQube AMI recorded in this sequence was <code>ami-REPLACE_WITH_YOUR_ID</code>. Its replacement reported service <code>active</code> and API status <code>UP</code>. Reading tags/secrets at boot is part of the baked startup contract; packages, helper scripts and service definitions are baked before deployment. The AWS API can still fail at runtime, so a successful image build alone is not a full end-to-end health check.</p>
+<h3 id="walkthrough-21">21. Record rebuilt images and replace, rather than edit, the runner</h3>
+<p>The same replacement approach applied to the scanner runner when its software permissions and sizing needed correction.</p>
+<p>I used replacement for missing tools, executable permissions and runner sizing. The lasting correction belonged in the image or Terraform definition, not in manual changes to a working server.</p>
+<p>I encountered the same AWS CLI permission problem on the scanner runner, then discovered Node.js/npm were absent. I corrected the runner image, rebuilt it, recorded its AMI and backing snapshot, and replaced the EC2 runner through Terraform. The new runner used <code>ami-REPLACE_WITH_YOUR_ID</code>; the old offline GitHub runner entries were historical registrations, not usable capacity.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I selected the branch containing the reviewed configuration.</p>
+<pre class="story-code"><code>git switch master</code></pre>
+<p>I fast-forwarded the checkout to the reviewed remote version before building or updating a policy.</p>
+<pre class="story-code"><code>git pull --ff-only</code></pre>
+<p>I started the image build with the Packer operator role and the selected inputs. Provisioning runs on the temporary builder; it is not a repair command for a deployed host.</p>
+<pre class="story-code"><code>set -a
+source packer/github-runner/versions.env
+set +a
+
+AWS_PROFILE=project-3-packer packer build \
+  -var 'source_ami_id=ami-REPLACE_WITH_YOUR_ID' \
+  -var 'subnet_id=subnet-REPLACE_WITH_YOUR_ID' \
+  -var 'security_group_id=sg-REPLACE_WITH_YOUR_ID' \
+  -var &quot;github_runner_version=$GITHUB_RUNNER_VERSION&quot; \
+  -var &quot;gitleaks_version=$GITLEAKS_VERSION&quot; \
+  -var &quot;sonar_scanner_version=$SONAR_SCANNER_VERSION&quot; \
+  -var &quot;dependency_check_version=$DEPENDENCY_CHECK_VERSION&quot; \
+  -var &quot;zap_version=$ZAP_VERSION&quot; \
+  -var &quot;terraform_version=$TERRAFORM_VERSION&quot; \
+  -var &quot;aws_cli_version=$AWS_CLI_VERSION&quot; \
+  -var &quot;java_package=$JAVA_PACKAGE&quot; \
+  packer/github-runner/</code></pre>
+<p>I checked the AMI's owner, state and image metadata before building or deploying from it.</p>
+<pre class="story-code"><code>aws ec2 describe-images \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --image-ids ami-REPLACE_WITH_YOUR_ID \
+  --query 'Images[].{AMI:ImageId,State:State,Snapshot:BlockDeviceMappings[0].Ebs.SnapshotId}' \
+  --output table</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+
+git switch -c feat/runner-node-npm-ami
+
+cat &gt; packer/github-runner/ami-id.txt &lt;&lt;'EOF'
+AMI_ID=ami-REPLACE_WITH_YOUR_ID
+SNAPSHOT_ID=snap-REPLACE_WITH_YOUR_ID
+AWS_REGION=us-east-1
+EOF
+
+git add packer/github-runner/ami-id.txt
+git diff --cached --check
+git commit -m &quot;Record runner AMI with Node.js and npm&quot;
+git push -u origin feat/runner-node-npm-ami</code></pre>
+<p>I opened a pull request so the proposed configuration change could be reviewed before merge.</p>
+<pre class="story-code"><code>gh pr create \
+  --base master \
+  --head feat/runner-node-npm-ami \
+  --title &quot;Record runner AMI with Node.js and npm&quot; \
+  --body &quot;Record the rebuilt scanner runner AMI and its backing snapshot.&quot;</code></pre>
+<p>I listed the matching EC2 instances to obtain the current IDs, state and addresses.</p>
+<pre class="story-code"><code>aws ec2 describe-instances \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters \
+    &quot;Name=tag:Name,Values=project-3-secure-cicd-pipeline-scanner-runner&quot; \
+    &quot;Name=instance-state-name,Values=running&quot; \
+  --query 'Reservations[].Instances[].{Instance:InstanceId,AMI:ImageId,Type:InstanceType,PrivateIP:PrivateIpAddress}' \
+  --output table</code></pre>
+<p>I queried the repository's runner registrations to check which scanner runner was online and available.</p>
+<pre class="story-code"><code>gh api repos/DelaneKay/project-3-secure-cicd-pipeline/actions/runners \
+  --jq '.runners[] | {name, status, busy}'</code></pre>
+<p>I submitted the read-only SSM check and kept its returned command ID so the result could be retrieved for the same instance.</p>
+<pre class="story-code"><code>COMMAND_ID=$(aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters '{&quot;commands&quot;:[&quot;runuser -u actions-runner -- /usr/local/bin/node --version&quot;,&quot;runuser -u actions-runner -- /usr/local/bin/npm --version&quot;,&quot;runuser -u actions-runner -- /usr/local/bin/dependency-check --version&quot;]}' \
+  --query 'Command.CommandId' \
+  --output text) &amp;&amp; printf '%s\n' &quot;$COMMAND_ID&quot;</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id 5bd01d7f-c80e-4a73-9f11-e34c94f1a077 \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>The verification output was Node.js <code>v22.23.4</code>, npm <code>10.9.9</code> and Dependency-Check <code>13.0.0</code>. I also replaced the original 2 GB <code>t3.small</code> runner with <code>c7i-flex.large</code> after the kernel OOM evidence. The Terraform plan had to show replacement, not an in-place stop/resize operation.</p>
+<h3 id="walkthrough-22">22. Run Gitleaks separately on the AWS runner</h3>
+<p>Once the replacement runner was online with its required tools, I could verify the first standalone scanner.</p>
+<p>Gitleaks checked repository history for possible secrets before I progressed to application analysis. This covers a different risk from vulnerable packages or web responses.</p>
+<p>I ran Gitleaks on the self-hosted scanner after it registered online. I scanned full Git history and uploaded a redacted JSON report. The first finding was the public AWS CLI signing-key fingerprint; I examined the exact historical commit before adding a single-finding ignore entry. I did not disable the generic API-key rule globally.</p>
+<pre class="story-code"><code>gh workflow run gitleaks-aws.yml --ref master</code></pre>
+<p>I listed recent runs to identify the correct workflow run before reading its logs or downloading evidence.</p>
+<pre class="story-code"><code>gh run list --workflow gitleaks-aws.yml --limit 3</code></pre>
+<p>I waited for that workflow run to finish and used its exit status to distinguish completion from failure.</p>
+<pre class="story-code"><code>gh run watch 41624217203 --exit-status</code></pre>
+<p>I inspected the recorded workflow run and its job results.</p>
+<pre class="story-code"><code>gh run view 41624217203</code></pre>
+<p>I inspected the exact historical file line behind the Gitleaks finding before deciding whether a narrow exception was justified.</p>
+<pre class="story-code"><code>git show 9d2406ca349dfe9ad1aac51dedc80129a819c226:packer/sonarqube/scripts/install-sonarqube.sh \
+  | sed -n '9p' \
+  | cut -d= -f1</code></pre>
+<p>I moved into the SonarQube image directory so Packer would read that template.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+git switch -c fix/gitleaks-public-key-fingerprint
+
+cat &gt;&gt; .gitleaksignore &lt;&lt;'EOF'
+# AWS CLI public signing-key fingerprint used for package signature verification.
+9d2406ca349dfe9ad1aac51dedc80129a819c226:packer/sonarqube/scripts/install-sonarqube.sh:generic-api-key:9
+EOF
+
+git diff -- .gitleaksignore
+git status --short</code></pre>
+<p>I staged the intended files so the next commit contained the change I had just reviewed.</p>
+<pre class="story-code"><code>git add .gitleaksignore</code></pre>
+<p>I checked the diff for whitespace errors before committing.</p>
+<pre class="story-code"><code>git diff --cached --check</code></pre>
+<p>I recorded the reviewed change in Git before publishing it.</p>
+<pre class="story-code"><code>git commit -m &quot;Exclude verified public AWS CLI signing fingerprint&quot;</code></pre>
+<p>I pushed the commit so GitHub Actions and pull-request review could use the same version of the files.</p>
+<pre class="story-code"><code>git push -u origin fix/gitleaks-public-key-fingerprint</code></pre>
+<p>I opened a pull request so the proposed configuration change could be reviewed before merge.</p>
+<pre class="story-code"><code>gh pr create \
+  --base master \
+  --head fix/gitleaks-public-key-fingerprint \
+  --title &quot;Exclude public AWS CLI signing fingerprint from Gitleaks&quot; \
+  --body &quot;Document and suppress one verified false positive using its exact commit, file, rule, and line. The value is the public AWS CLI signing-key fingerprint used for package verification.&quot;</code></pre>
+<p>I triggered the named standalone workflow on master so I could verify that stage independently.</p>
+<pre class="story-code"><code>gh workflow run gitleaks-aws.yml --ref master</code></pre>
+<p>I listed recent runs to identify the correct workflow run before reading its logs or downloading evidence.</p>
+<pre class="story-code"><code>gh run list --workflow gitleaks-aws.yml --limit 3</code></pre>
+<p>I waited for that workflow run to finish and used its exit status to distinguish completion from failure.</p>
+<pre class="story-code"><code>gh run watch 41626050135 --exit-status</code></pre>
+<p>I downloaded the selected run's artifacts into the local evidence directory for inspection.</p>
+<pre class="story-code"><code>gh run download 41626050135 \
+  --dir reports/gitleaks-41626050135</code></pre>
+<p>I listed the relevant files to confirm what existed before moving to the next step.</p>
+<pre class="story-code"><code>find reports/gitleaks-41626050135 -name 'gitleaks.json' -exec cat {} \;</code></pre>
+<p>The verified rerun returned <code>[]</code>. Vulnerability findings remain report-only, while a missing executable or missing report is a scanner failure. The <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/.github/workflows/gitleaks-aws.yml">Gitleaks workflow</a> contains the checked-in scan and report steps.</p>
+<h3 id="walkthrough-23">23. Open SonarQube through SSM and bootstrap its project</h3>
+<p>With secrets scanning verified, I prepared the SonarQube project that the source-analysis workflow would use.</p>
+<p>SonarQube provided a central source-analysis project, rule profiles and a results API. Its project setup is application-level configuration through a supported API, not a change to the host's baked software.</p>
+<p>I forwarded port 9000 to localhost with SSM, logged in to SonarQube and changed its initial password. I created the protected <code>sonarqube-admin</code> GitHub environment with <code>SONAR_HOST_URL</code> and <code>SONAR_ADMIN_TOKEN</code>, then ran the project setup workflow on the AWS runner. The setup script creates/reconciles the private <code>project-3-juice-shop</code> project and discovers the built-in language defaults.</p>
+<pre class="story-code"><code>aws ssm start-session \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --target i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters '{&quot;portNumber&quot;:[&quot;9000&quot;],&quot;localPortNumber&quot;:[&quot;9000&quot;]}'</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I triggered the named standalone workflow on master so I could verify that stage independently.</p>
+<pre class="story-code"><code>gh workflow run sonarqube-setup.yml --ref master</code></pre>
+<p>I listed recent runs to identify the correct workflow run before reading its logs or downloading evidence.</p>
+<pre class="story-code"><code>gh run list --workflow sonarqube-setup.yml --limit 3</code></pre>
+<p>I used <code>http://localhost:9000/projects</code> in my browser. A version-specific profile-name mismatch initially failed setup: this release offered <code>Sonar way core</code>, <code>extended</code> and <code>comprehensive</code>, not a single profile literally named <code>Sonar way</code>. The corrected setup selected the language's built-in default. The next setup run succeeded without a host change or AMI rebuild.</p>
+<h3 id="walkthrough-24">24. Separate SonarQube analysis and reporting permissions</h3>
+<p>The project was available; I next separated the credentials for submitting analysis from those used to read results.</p>
+<p>I separated analysis and reporting identities because submitting analysis and reading results are different jobs. Routine reporting did not need administrator permissions.</p>
+<p>I created <code>sonarqube-scan</code>, set <code>SONAR_HOST_URL</code> to the reachable private SonarQube URL, and stored the project analysis token as <code>SONAR_TOKEN</code>. I created <code>project-3-reporter</code>, granted Browse only at <code>http://localhost:9000/project_roles?id=project-3-juice-shop</code>, and stored that account's user token as <code>SONAR_REPORT_TOKEN</code>. A token inherits its owner's permissions; I did not use the administrator token for routine reporting.</p>
+<pre class="story-code"><code>gh workflow run sonarqube-analysis.yml --ref master</code></pre>
+<p>I listed recent runs to identify the correct workflow run before reading its logs or downloading evidence.</p>
+<pre class="story-code"><code>gh run list --workflow sonarqube-analysis.yml --limit 3</code></pre>
+<p>I waited for that workflow run to finish and used its exit status to distinguish completion from failure.</p>
+<pre class="story-code"><code>gh run watch 41648646890 --exit-status</code></pre>
+<p>I inspected the recorded workflow run and its job results.</p>
+<pre class="story-code"><code>gh run view 41648646890</code></pre>
+<p>I retrieved the failed job's log to identify the stage that had not completed.</p>
+<pre class="story-code"><code>gh run view 41648646890 --log-failed</code></pre>
+<p>The workflow checked out Juice Shop v20.3.0, submitted analysis and kept quality-gate findings report-only. The later export step waited for processing and saved issue summaries and the analysis receipt. A screenshot once displayed a token; reusable documentation must not preserve token values. Account/token creation was performed in the UI, not by an invented shell command.</p>
+<h3 id="walkthrough-25">25. Export SonarQube results and verify CloudWatch/SNS</h3>
+<p>After analysis submission worked, I verified the export and notification path rather than assuming a successful scan had delivered its results.</p>
+<p>CloudWatch and SNS made the results visible beyond a job log. I stored detailed reports as artifacts and published aggregate summaries to avoid one email per issue.</p>
+<p>I added the reporting step only after the standalone analysis worked. I downloaded the report to inspect its summary and verified a CloudWatch stream. SNS initially had no subscriptions, so successful publish calls could not produce an email. I supplied <code>TF_NOTIFICATION_EMAIL</code> through the repository variable, applied observability through the workflow, confirmed AWS's subscription email, and reran analysis.</p>
+<pre class="story-code"><code>gh workflow run sonarqube-analysis.yml --ref master</code></pre>
+<p>I listed recent runs to identify the correct workflow run before reading its logs or downloading evidence.</p>
+<pre class="story-code"><code>gh run list --workflow sonarqube-analysis.yml --limit 3</code></pre>
+<p>I waited for that workflow run to finish and used its exit status to distinguish completion from failure.</p>
+<pre class="story-code"><code>gh run watch 41671030481 --exit-status</code></pre>
+<p>I retrieved the failed job's log to identify the stage that had not completed.</p>
+<pre class="story-code"><code>gh run view 41671030481 --log-failed</code></pre>
+<p>I downloaded the selected run's artifacts into the local evidence directory for inspection.</p>
+<pre class="story-code"><code>gh run download 41671030481 \
+  --name sonarqube-results \
+  --dir reports/sonarqube-41671030481</code></pre>
+<p>I read the saved file back to confirm its contents before continuing.</p>
+<pre class="story-code"><code>cat reports/sonarqube-41671030481/summary.json</code></pre>
+<p>I checked the SNS subscriptions because publishing a summary cannot deliver an email without a confirmed subscriber.</p>
+<pre class="story-code"><code>aws sns list-subscriptions-by-topic \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --topic-arn arn:aws:sns:us-east-1:YOUR_ACCOUNT_ID:project-3-secure-cicd-pipeline-scan-findings \
+  --query 'Subscriptions[].{Protocol:Protocol,Status:SubscriptionArn}' \
+  --output table</code></pre>
+<p>I listed the scan-summary streams to verify that the reporting path had created the expected records.</p>
+<pre class="story-code"><code>aws logs describe-log-streams \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --log-group-name /project-3/pipeline/scans \
+  --log-stream-name-prefix sonarqube-41671030481 \
+  --query 'logStreams[].{Stream:logStreamName,LastEvent:lastEventTimestamp}' \
+  --output table</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I checked the relevant configuration lines to verify which setting or workflow input was actually present.</p>
+<pre class="story-code"><code>grep -n -i 'notification_email' \
+  terraform/observability/variables.tf \
+  .github/workflows/terraform-layer.yml \
+  .github/workflows/terraform-deploy.yml</code></pre>
+<p>I checked the SNS subscriptions because publishing a summary cannot deliver an email without a confirmed subscriber.</p>
+<pre class="story-code"><code>aws sns list-subscriptions-by-topic \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --topic-arn arn:aws:sns:us-east-1:YOUR_ACCOUNT_ID:project-3-secure-cicd-pipeline-scan-findings \
+  --output json --no-cli-pager</code></pre>
+<p>I triggered the named standalone workflow on master so I could verify that stage independently.</p>
+<pre class="story-code"><code>gh workflow run sonarqube-analysis.yml --ref master</code></pre>
+<p>I listed recent runs to identify the correct workflow run before reading its logs or downloading evidence.</p>
+<pre class="story-code"><code>gh run list --workflow sonarqube-analysis.yml --limit 3</code></pre>
+<p>I waited for that workflow run to finish and used its exit status to distinguish completion from failure.</p>
+<pre class="story-code"><code>gh run watch 41695305784 --exit-status</code></pre>
+<p>The summary contained 272 SonarQube issues: 104 blocker, 10 critical, 96 major and 62 minor. These are SonarQube issue severities, not proof of 272 exploitable vulnerabilities. The quality status was <code>OK</code>. CloudWatch receives one aggregate event and SNS one concise summary per scan attempt, while full findings stay in report artifacts.</p>
+<h3 id="walkthrough-26">26. Run Dependency-Check separately</h3>
+<p>With source analysis and reporting working, I moved to the packaged application's third-party dependencies.</p>
+<p>Dependency-Check added known-vulnerability analysis of the packaged dependencies. I checked its input and vulnerability-data access before trusting its findings.</p>
+<p>I verified Node.js, npm and Dependency-Check as the runner account before starting SCA. I created the <code>dependency-check</code> GitHub environment and stored <code>NVD_API_KEY</code> there. The initial source-tree workflow expected a top-level lockfile that was absent from the selected release; I changed it to verify and scan the packaged Juice Shop release with its installed dependencies.</p>
+<pre class="story-code"><code>COMMAND_ID=$(aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters '{&quot;commands&quot;:[&quot;runuser -u actions-runner -- /usr/local/bin/node --version&quot;,&quot;runuser -u actions-runner -- /usr/local/bin/npm --version&quot;,&quot;runuser -u actions-runner -- /usr/local/bin/dependency-check --version&quot;]}' \
+  --query 'Command.CommandId' \
+  --output text) &amp;&amp; printf '%s\n' &quot;$COMMAND_ID&quot;</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id 5bd01d7f-c80e-4a73-9f11-e34c94f1a077 \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>I listed recent runs to identify the correct workflow run before reading its logs or downloading evidence.</p>
+<pre class="story-code"><code>gh run list --workflow dependency-check.yml --limit 3</code></pre>
+<p>I retrieved the failed job's log to identify the stage that had not completed.</p>
+<pre class="story-code"><code>gh run view 41719010612 --log-failed</code></pre>
+<p>I downloaded the selected run's artifacts into the local evidence directory for inspection.</p>
+<pre class="story-code"><code>gh run download 41719010612 \
+  --name dependency-check-results \
+  --dir reports/dependency-check-41719010612
+
+python3 - &lt;&lt;'PY'
+import json
+from pathlib import Path
+
+path = Path(&quot;reports/dependency-check-41719010612/dependency-check-report.json&quot;)
+report = json.loads(path.read_text())
+
+print(&quot;Top-level report fields:&quot;, &quot;, &quot;.join(report.keys()))
+print(&quot;Analysis exceptions:&quot;, json.dumps(report.get(&quot;analysisExceptions&quot;, []), indent=2))
+print(&quot;Dependencies reported:&quot;, len(report.get(&quot;dependencies&quot;, [])))
+PY</code></pre>
+<p>In GitHub I selected Actions → Juice Shop Dependency-Check → Run workflow → master. The packaged release checksum was checked before extraction. The final workflow disables npm/yarn/pnpm audit for this artifact and uses the NVD-backed CPE analysis plus the other enabled analyzers. I report <code>completed_limited_coverage</code>, because a packaged dependency tree without the top-level lockfile does not provide complete package-audit coverage.</p>
+<h3 id="walkthrough-27">27. Fix Dependency-Check execution before trusting its findings</h3>
+<p>The dependency workflow exposed execution problems that needed resolving before I could rely on its vulnerability report.</p>
+<p>Report-only findings did not excuse a failed scanner. I corrected the workflow configuration and reran it rather than accepting an incomplete report as a clean result.</p>
+<p>The missing NVD key failed updates with exit 13. A later run wrote reports but still ended with unexpected exceptions and exit 14; that was not a clean scan. I inspected the report and added sanitized exception diagnostics. The confirmed parser correction changed the empty CPE skip-list property to an explicit empty JSON array.</p>
+<pre class="story-code"><code>ecosystem.skip.cpeanalyzer=</code></pre>
+<p>I changed the Dependency-Check property to an explicit empty JSON array so its parser received a valid skip-list value.</p>
+<pre class="story-code"><code>ecosystem.skip.cpeanalyzer=[]</code></pre>
+<p>I downloaded the selected run's artifacts into the local evidence directory for inspection.</p>
+<pre class="story-code"><code>gh run download 41719010612 \
+  --name dependency-check-results \
+  --dir reports/dependency-check-41719010612
+
+python3 - &lt;&lt;'PY'
+import json
+from pathlib import Path
+
+path = Path(&quot;reports/dependency-check-41719010612/dependency-check-report.json&quot;)
+report = json.loads(path.read_text())
+
+print(&quot;Top-level report fields:&quot;, &quot;, &quot;.join(report.keys()))
+print(&quot;Analysis exceptions:&quot;, json.dumps(report.get(&quot;analysisExceptions&quot;, []), indent=2))
+print(&quot;Dependencies reported:&quot;, len(report.get(&quot;dependencies&quot;, [])))
+PY</code></pre>
+<p>The final recorded summary reported 16,284 dependencies, 20 vulnerable dependencies and 66 vulnerability occurrences: critical 23, high 13, medium 24 and low 6. Counts can change as vulnerability data changes. The <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/.github/workflows/dependency-check.yml">Dependency-Check workflow</a> contains the scan command, NVD key handling and execution diagnostics.</p>
+<h3 id="walkthrough-28">28. Verify ZAP and target reachability before DAST</h3>
+<p>Once dependency scanning completed with its coverage limits recorded, I prepared to test the running web application.</p>
+<p>DAST needs a running reachable target. These read-only checks verified the tools already baked into the runner; missing software would have required an image rebuild.</p>
+<p>I checked the installed ZAP launcher and automation add-on as <code>actions-runner</code>. My first attempt used a nonexistent user called <code>runner</code>; that was an account-name mistake, not a reason to create a new user on the deployed host. I then checked the running Juice Shop instance and HTTP reachability from the scanner.</p>
+<pre class="story-code"><code>aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=[&quot;command -v zap.sh || command -v zap || true&quot;,&quot;ls -d /opt/*zap* /opt/*ZAP* 2&gt;/dev/null || true&quot;]' \
+  --query 'Command.CommandId' \
+  --output text</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id d24cf239-195f-40ad-bd05-7a9b6037e34d \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>I submitted the diagnostic to the explicitly selected instance. I used it to inspect health, not to change the deployed configuration.</p>
+<pre class="story-code"><code>aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=[&quot;runuser -u actions-runner -- /usr/local/bin/zap.sh -version&quot;]' \
+  --query 'Command.CommandId' \
+  --output text</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id 1e86f2b0-ec76-42d0-a894-99d8a2e534b0 \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>I listed the matching EC2 instances to obtain the current IDs, state and addresses.</p>
+<pre class="story-code"><code>aws ec2 describe-instances \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters \
+    &quot;Name=tag:Name,Values=project-3-secure-cicd-pipeline-juice-shop&quot; \
+    &quot;Name=instance-state-name,Values=running&quot; \
+  --query 'Reservations[].Instances[].{Instance:InstanceId,PrivateIP:PrivateIpAddress,State:State.Name}' \
+  --output table</code></pre>
+<p>I submitted the diagnostic to the explicitly selected instance. I used it to inspect health, not to change the deployed configuration.</p>
+<pre class="story-code"><code>aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=[&quot;curl --connect-timeout 5 --silent --show-error --output /dev/null --write-out \&quot;Juice Shop HTTP %{http_code}\\n\&quot; http://PRIVATE_HOST_IP:3000/&quot;]' \
+  --query 'Command.CommandId' \
+  --output text</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id ef818084-33c1-4bd4-940a-8fc3bcb6a4ed \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>I submitted the diagnostic to the explicitly selected instance. I used it to inspect health, not to change the deployed configuration.</p>
+<pre class="story-code"><code>aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=[&quot;find /opt/project-3/tools -type f \\( -iname \&quot;*automation*.zap\&quot; -o -iname \&quot;*automation*.jar\&quot; \\) -print&quot;]' \
+  --query 'Command.CommandId' \
+  --output text</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id c32db850-433a-4de7-a13a-674ddc47bb05 \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>The checks returned ZAP 2.17.0, the automation-beta 0.58.0 add-on and Juice Shop HTTP 200. These commands verified the installed image and network path; they did not install new host software.</p>
+<h3 id="walkthrough-29">29. Run ZAP separately and keep its scope bounded</h3>
+<p>The tool and connectivity checks established the prerequisites for the standalone dynamic scan.</p>
+<p>ZAP tested the running application's HTTP behaviour after deployment. Target validation and bounded scan settings kept the active test within the approved lab.</p>
+<p>I used Actions → Juice Shop ZAP DAST → Run workflow → master after merging its workflow. ZAP discovers exactly one running Project-tagged Juice Shop instance, checks the address is inside <code>10.20.0.0/16</code>, tests HTTP reachability, then runs a bounded unauthenticated spider and active scan. I limited the target to my lab application. The <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/.github/workflows/zap-dast.yml">ZAP workflow</a> contains the scan command and automation plan.</p>
+<p>The successful run was <code>41832567685</code>, with five alert types: two medium and three informational. It produced JSON/HTML reports and an SNS email. This is limited unauthenticated coverage: it does not claim to exercise all Juice Shop routes, JavaScript flows or authenticated features.</p>
+<pre class="story-code"><code>gh run view 41832567685</code></pre>
+<p>This uses the same <code>gh run view</code> command used throughout the lab, with the successful ZAP run ID shown in the recorded notification.</p>
+<h3 id="walkthrough-30">30. Combine the tested workflows without deleting the separate ones</h3>
+<p>After testing the scanners separately, I connected the existing workflows without creating a second implementation of each scan.</p>
+<p>Reusable workflows connected the tested controls without a second copy of their logic. The separate entry points remained useful for demonstrations and isolated troubleshooting.</p>
+<p>After verifying Gitleaks, SAST, SCA and DAST independently, I added <code>workflow_call</code> to the reusable scanner/deployment workflows and created <code>secure-pipeline.yml</code>. The separate workflows remain available for demonstrations and isolated troubleshooting. The combined workflow starts Gitleaks, SonarQube and Dependency-Check before deployment, reuses reviewed Terraform deployment, and runs ZAP after deployment.</p>
+<pre class="story-code"><code>name: Combined secure CI-CD pipeline
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: project-3-combined-pipeline
+  cancel-in-progress: false
+jobs:
+  gitleaks:
+    name: Gitleaks secrets scan
+    uses: ./.github/workflows/gitleaks-aws.yml
+
+  sonarqube:
+    name: SonarQube SAST
+    uses: ./.github/workflows/sonarqube-analysis.yml
+    secrets: inherit
+
+  dependency_check:
+    name: Dependency-Check SCA
+    uses: ./.github/workflows/dependency-check.yml
+    secrets: inherit
+
+  deploy:
+    name: Terraform reviewed deployment
+    needs: [gitleaks, sonarqube, dependency_check]
+    uses: ./.github/workflows/terraform-deploy.yml
+    secrets: inherit
+
+  zap:
+    name: ZAP DAST
+    needs: deploy
+    uses: ./.github/workflows/zap-dast.yml</code></pre>
+<p>I used Actions → Combined secure CI-CD pipeline → Run workflow → master. This first combined run assumed the scanner and SonarQube platform already existed. It is not a cold-start bootstrap: a runner cannot execute scans before the runner exists. The complete standalone Terraform workflow remains the way I bring the platform up first.</p>
+<h3 id="walkthrough-31">31. Verify the combined run and preserve evidence</h3>
+<p>The combined workflow had completed; I then checked its artifacts and the CloudWatch records that showed what each scanner reported.</p>
+<p>My first combined run, <code>41846334576</code>, completed successfully in 33 minutes 47 seconds with nine artifacts. Four were scanner result bundles and five were saved Terraform plan bundles. I retained the separate workflow files as well as the combined one. A green pipeline means the configured jobs completed; it does not mean the intentionally vulnerable application is safe.</p>
+<pre class="story-code"><code>mkdir -p ~/project-3-artifact-review</code></pre>
+<p>I downloaded the selected run's artifacts into the local evidence directory for inspection.</p>
+<pre class="story-code"><code>gh run download 41846334576 \
+  --repo DelaneKay/project-3-secure-cicd-pipeline \
+  --dir ~/project-3-artifact-review</code></pre>
+<p>I listed the relevant files to confirm what existed before moving to the next step.</p>
+<pre class="story-code"><code>find ~/project-3-artifact-review -type f | sort</code></pre>
+<p>The successful run is <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/actions/runs/41846334576">available in Actions</a>. I kept reviewed scanner evidence for the portfolio and did not publish binary Terraform plans/state as portfolio examples. Reports demonstrate what a particular run actually found; source code alone cannot prove the tools executed or the notification arrived.</p>
+<h4>Verify the CloudWatch scan summaries</h4>
+<p>I used these read-only commands in WSL to check that the scanner summaries reached CloudWatch. The first query shows events from the last 24 hours; the second isolates the demonstrated combined run. <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/docs/evidence/cloudwatch-scan-summaries.md">View my saved CloudWatch results</a>, including the earlier execution failures and later Gitleaks findings, rather than relying on a successful workflow badge alone.</p>
+<p><strong>Recent summary events:</strong></p>
+<pre class="story-code"><code>aws logs filter-log-events \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --log-group-name /project-3/pipeline/scans \
+  --start-time &quot;$(date -d '24 hours ago' +%s)000&quot; \
+  --query 'events[].{Stream:logStreamName,Summary:message}' \
+  --output json \
+  --no-cli-pager</code></pre>
+<p><strong>Summary events for combined run <code>41846334576</code>:</strong></p>
+<pre class="story-code"><code>aws logs filter-log-events \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --log-group-name /project-3/pipeline/scans \
+  --filter-pattern '&quot;41846334576&quot;' \
+  --query 'events[].{Stream:logStreamName,Summary:message}' \
+  --output json \
+  --no-cli-pager</code></pre>
+<p>The 24-hour window moves each time I run the first command, while the historical run query depends on the log retention period. An empty response is not evidence of zero vulnerabilities. I read the saved results in the linked file; detailed findings are in the linked report bundles.</p>
+<h4>Open the saved pipeline results</h4>
+<p>I kept the results separate from the walkthrough so readers can inspect the evidence directly.</p>
+<div class="story-table-wrap"><table class="story-table">
+<tr><th>Results</th><th>View or download</th></tr>
+<tr><td>CloudWatch summaries, including failed executions and later scans</td><td><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/docs/evidence/cloudwatch-scan-summaries.md">View saved CloudWatch output</a></td></tr>
+<tr><td>Combined-run report index and coverage limitations</td><td><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/docs/evidence/combined-run-41846334576/README.md">View the evidence index</a></td></tr>
+<tr><td>Gitleaks</td><td><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/docs/evidence/combined-run-41846334576/gitleaks.zip">Download ZIP</a></td></tr>
+<tr><td>SonarQube</td><td><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/docs/evidence/combined-run-41846334576/sonarqube.zip">Download ZIP</a></td></tr>
+<tr><td>OWASP Dependency-Check</td><td><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/docs/evidence/combined-run-41846334576/dependency-check.zip">Download ZIP</a></td></tr>
+<tr><td>OWASP ZAP</td><td><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/blob/master/docs/evidence/combined-run-41846334576/zap.zip">Download ZIP</a></td></tr>
+</table></div>
+<p>The four ZIPs are archived scanner reports from combined run <code>41846334576</code>. They are point-in-time evidence, not the latest result for every scanner. I extract each ZIP to read its HTML, JSON or CSV files. Terraform binary plans and state are not included in these public evidence links.</p>
+<h4>Verify the deployed trust-boundary controls</h4>
+<p>After the combined run, I used these read-only queries to check the live identity, network scope, runner registrations and notification subscription against the boundary map above. These inspections require deployed resources; they are not commands to run before the first deployment.</p>
+<pre class="story-code"><code>export AWS_PROFILE=mds-devsecops-lab</code></pre>
+<p>I set the region for SDKs and tools that read <code>AWS_REGION</code>, keeping this shell pointed at the lab's AWS region.</p>
+<pre class="story-code"><code>export AWS_REGION=us-east-1</code></pre>
+<p>I also set the AWS CLI's default region so a command without an explicit <code>--region</code> uses the same lab region.</p>
+<pre class="story-code"><code>export AWS_DEFAULT_REGION=us-east-1</code></pre>
+<p>I checked the caller ARN before continuing. This confirms the AWS identity actually in use, rather than relying on the local profile name.</p>
+<pre class="story-code"><code>aws sts get-caller-identity</code></pre>
+<p>I checked the installed Packer version before using its templates.</p>
+<pre class="story-code"><code>packer version</code></pre>
+<p>I looked up the Project-tagged VPC so I could compare the live network with the policy's resource scope.</p>
+<pre class="story-code"><code>aws ec2 describe-vpcs \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters &quot;Name=tag:Project,Values=project-3-secure-cicd-pipeline&quot; \
+  --query 'Vpcs[].{VpcId:VpcId,Cidr:CidrBlock}' \
+  --output table</code></pre>
+<p>I listed the subnets in the selected VPC before using their IDs in a build or authorization condition.</p>
+<pre class="story-code"><code>aws ec2 describe-subnets \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters &quot;Name=vpc-id,Values=vpc-REPLACE_WITH_YOUR_ID&quot; \
+  --query 'Subnets[].{SubnetId:SubnetId,AZ:AvailabilityZone,Cidr:CidrBlock}' \
+  --output table</code></pre>
+<p>I inspected the selected security groups and their network scope before using them.</p>
+<pre class="story-code"><code>aws ec2 describe-security-groups \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters &quot;Name=vpc-id,Values=vpc-REPLACE_WITH_YOUR_ID&quot; \
+  --query 'SecurityGroups[].{GroupId:GroupId,Name:GroupName}' \
+  --output table</code></pre>
+<p>I queried the repository's runner registrations to check which scanner runner was online and available.</p>
+<pre class="story-code"><code>gh api repos/DelaneKay/project-3-secure-cicd-pipeline/actions/runners \
+  --jq '.runners[] | {name, status, busy}'</code></pre>
+<p>I checked the SNS subscriptions because publishing a summary cannot deliver an email without a confirmed subscriber.</p>
+<pre class="story-code"><code>aws sns list-subscriptions-by-topic \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --topic-arn arn:aws:sns:us-east-1:YOUR_ACCOUNT_ID:project-3-secure-cicd-pipeline-scan-findings \
+  --output json --no-cli-pager</code></pre>
+<h3 id="walkthrough-32">32. Destroy through the workflow and verify what remains</h3>
+<p>After preserving the run evidence and checking the deployed controls, I could tear down the lab through the same reviewed workflow approach.</p>
+<p>When I paused the lab I used Terraform destroy through GitHub, not manual deletion of state files. In Actions → Terraform destroy → Run workflow, I selected master, supplied the workflow's required <code>DESTROY</code> confirmation, reviewed the destroy plans and approved them. Destruction runs in reverse dependency order. My RDS configuration skips the final snapshot as agreed.</p>
+<pre class="story-code"><code>aws sts get-caller-identity --profile mds-devsecops-lab</code></pre>
+<p>I listed the matching EC2 instances to obtain the current IDs, state and addresses.</p>
+<pre class="story-code"><code>aws ec2 describe-instances \
+  --profile mds-devsecops-lab --region us-east-1 \
+  --filters &quot;Name=tag:Project,Values=project-3-secure-cicd-pipeline&quot; \
+            &quot;Name=instance-state-name,Values=pending,running,stopping,stopped&quot; \
+  --query 'Reservations[].Instances[].{Id:InstanceId,Name:Tags[?Key==`Name`]|[0].Value,State:State.Name}' \
+  --output table</code></pre>
+<p>I inspected the existing database before deciding whether the issue concerned creation, state ownership or cleanup.</p>
+<pre class="story-code"><code>aws rds describe-db-instances \
+  --profile mds-devsecops-lab --region us-east-1 \
+  --query &quot;DBInstances[?starts_with(DBInstanceIdentifier, 'project-3')].{Id:DBInstanceIdentifier,Status:DBInstanceStatus}&quot; \
+  --output table</code></pre>
+<p>I looked up the Project-tagged VPC so I could compare the live network with the policy's resource scope.</p>
+<pre class="story-code"><code>aws ec2 describe-vpcs \
+  --profile mds-devsecops-lab --region us-east-1 \
+  --filters &quot;Name=tag:Project,Values=project-3-secure-cicd-pipeline&quot; \
+  --query 'Vpcs[].{Id:VpcId,State:State}' \
+  --output table</code></pre>
+<p>I expected no active Project 3 instances, database or VPC after a complete teardown. Terraform destruction does not remove the bootstrap state bucket, Packer AMIs/backing snapshots or bootstrap IAM roles. AMI snapshots are required image backing storage; they are separate from the optional final RDS snapshot we disabled. I retained the AMIs to rebuild the lab later.</p>
+<h3 id="walkthrough-33">33. Challenge: stale VPC/subnet permissions after recreation</h3>
+<p>Recreating the lab during these tests exposed an IAM scope problem. This is where the troubleshooting record explains the remaining manual bootstrap work.</p>
+<p>This manual IAM-policy repair exposed a remaining bootstrap automation gap. It did not change a deployed host, and I returned to workflow deployment after correcting the policy.</p>
+<p>The EC2 403s persisted because the role policy referred to a previous network. I compared the live VPC/subnets with <code>LaunchInterfacesInLabVpc</code>, <code>LaunchInTaggedSubnets</code> and <code>UseTaggedLabSecurityGroups</code>. I updated those exact conditions, reviewed the JSON and reapplied the bootstrap IAM policy. This was a bootstrap policy repair, not a patch to the deployed machines.</p>
+<pre class="story-code"><code>aws ec2 describe-vpcs \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters &quot;Name=tag:Project,Values=project-3-secure-cicd-pipeline&quot; \
+  --query 'Vpcs[].{VpcId:VpcId,Cidr:CidrBlock}' \
+  --output table</code></pre>
+<p>I listed the subnets in the selected VPC before using their IDs in a build or authorization condition.</p>
+<pre class="story-code"><code>aws ec2 describe-subnets \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters &quot;Name=vpc-id,Values=vpc-REPLACE_WITH_YOUR_ID&quot; \
+  --query 'Subnets[].{SubnetId:SubnetId,AZ:AvailabilityZone,Cidr:CidrBlock}' \
+  --output table</code></pre>
+<p>I inspected the selected security groups and their network scope before using them.</p>
+<pre class="story-code"><code>aws ec2 describe-security-groups \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --filters &quot;Name=vpc-id,Values=vpc-REPLACE_WITH_YOUR_ID&quot; \
+  --query 'SecurityGroups[].{GroupId:GroupId,Name:GroupName}' \
+  --output table</code></pre>
+<p>I kept this setup operation together because its variables, checks and cleanup depend on the same shell session. It prepares or verifies the configuration described in this step.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline
+set -euo pipefail
+
+policy=&quot;iam/terraform-github-oidc/apply-permissions.json&quot;
+region=&quot;us-east-1&quot;
+project=&quot;project-3-secure-cicd-pipeline&quot;
+profile=&quot;mds-devsecops-lab&quot;
+
+account_id=&quot;$(aws sts get-caller-identity \
+  --profile &quot;$profile&quot; \
+  --query Account --output text)&quot;
+
+vpc_ids=&quot;$(aws ec2 describe-vpcs \
+  --filters &quot;Name=tag:Project,Values=$project&quot; \
+  --query 'Vpcs[].VpcId' --output text \
+  --profile &quot;$profile&quot; --region &quot;$region&quot;)&quot;
+
+read -r -a vpcs &lt;&lt;&lt; &quot;$vpc_ids&quot;
+if [ &quot;${#vpcs[@]}&quot; -ne 1 ]; then
+  echo &quot;Expected one Project-tagged VPC; found ${#vpcs[@]}. Stopping.&quot; &gt;&amp;2
+  exit 1
+fi
+vpc_id=&quot;${vpcs[0]}&quot;
+
+subnet_ids=&quot;$(aws ec2 describe-subnets \
+  --filters &quot;Name=vpc-id,Values=$vpc_id&quot; &quot;Name=tag:Project,Values=$project&quot; \
+  --query 'Subnets[].SubnetId' --output text \
+  --profile &quot;$profile&quot; --region &quot;$region&quot;)&quot;
+
+read -r -a subnets &lt;&lt;&lt; &quot;$subnet_ids&quot;
+if [ &quot;${#subnets[@]}&quot; -ne 4 ]; then
+  echo &quot;Expected four Project-tagged subnets; found ${#subnets[@]}. Stopping.&quot; &gt;&amp;2
+  exit 1
+fi
+
+python3 - &quot;$policy&quot; &quot;$region&quot; &quot;$account_id&quot; &quot;$vpc_id&quot; &quot;${subnets[@]}&quot; &lt;&lt;'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+region, account, vpc_id = sys.argv[2:5]
+subnets = sys.argv[5:]
+policy = json.loads(path.read_text())
+
+vpc_arn = f&quot;arn:aws:ec2:{region}:{account}:vpc/{vpc_id}&quot;
+subnet_arns = sorted(
+    f&quot;arn:aws:ec2:{region}:{account}:subnet/{subnet_id}&quot;
+    for subnet_id in subnets
+)
+
+required = {
+    &quot;LaunchInTaggedSubnets&quot;,
+    &quot;UseTaggedLabSecurityGroups&quot;,
+    &quot;LaunchInterfacesInLabVpc&quot;,
+}
+found = set()
+
+for statement in policy[&quot;Statement&quot;]:
+    sid = statement.get(&quot;Sid&quot;)
+    if sid in required:
+        statement[&quot;Condition&quot;][&quot;StringEquals&quot;][&quot;ec2:Vpc&quot;] = vpc_arn
+        if sid == &quot;LaunchInterfacesInLabVpc&quot;:
+            statement[&quot;Condition&quot;][&quot;StringEquals&quot;][&quot;ec2:Subnet&quot;] = subnet_arns
+        found.add(sid)
+
+if found != required:
+    raise SystemExit(f&quot;Expected policy statements {sorted(required)}; found {sorted(found)}&quot;)
+
+path.write_text(json.dumps(policy, indent=2) + &quot;\n&quot;)
+PY
+
+jq empty &quot;$policy&quot;
+wc -c &quot;$policy&quot;
+git diff -- &quot;$policy&quot;</code></pre>
+<p>I switched to the repository directory so the following relative file paths resolved correctly.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I fast-forwarded the checkout to the reviewed remote version before building or updating a policy.</p>
+<pre class="story-code"><code>git pull --ff-only</code></pre>
+<p>I applied the reviewed inline policy to the bootstrap role. This updates authorization; it does not reconfigure an EC2 host.</p>
+<pre class="story-code"><code>aws iam put-role-policy \
+  --role-name project-3-terraform-apply-role \
+  --policy-name project-3-terraform-apply-policy \
+  --policy-document file://iam/terraform-github-oidc/apply-permissions.json \
+  --profile mds-devsecops-lab</code></pre>
+<p>The recorded script ends with <code>jq empty</code>; on my WSL session <code>jq</code> was missing. The Python JSON load/write had already run. I did not interpret the failed local validation command as proof that IAM had been updated. After applying, I checked <code>aws iam get-role-policy</code> and started a fresh workflow plan. The current design still requires reconciling this external IAM policy when the network is replaced; automatic subnet discovery in Terraform alone does not update an independently bootstrapped role policy.</p>
+<h3 id="walkthrough-34">34. Challenge: OIDC, API-specific IAM scopes and policy size</h3>
+<p>That network-scope failure was one part of a wider IAM investigation, which also involved OIDC trust and resource-specific authorization.</p>
+<p>I corrected the workflow's authorization configuration rather than bypassing it with broad administrator access or changing application hosts. The corrected policy was followed by a fresh reviewed plan.</p>
+<p>The first OIDC assumption failed because the trust subject did not match this repository's immutable owner/repository identifiers. I corrected the two trust files and updated the live roles. I subsequently repaired CloudWatch list scope, RDS subnet-group ARN, EC2 image ARN ownership and launch-time tagging permissions instead of attaching AdministratorAccess.</p>
+<pre class="story-code"><code>aws iam update-assume-role-policy \
+  --role-name project-3-terraform-plan-role \
+  --policy-document file://iam/terraform-github-oidc/plan-trust.json \
+  --profile mds-devsecops-lab</code></pre>
+<p>I updated the role's trust policy to match the eligible GitHub identity context.</p>
+<pre class="story-code"><code>aws iam update-assume-role-policy \
+  --role-name project-3-terraform-apply-role \
+  --policy-document file://iam/terraform-github-oidc/apply-trust.json \
+  --profile mds-devsecops-lab</code></pre>
+<p>I updated the role's trust policy to match the eligible GitHub identity context.</p>
+<pre class="story-code"><code>aws iam update-assume-role-policy \
+  --role-name project-3-terraform-plan-role \
+  --policy-document file://iam/terraform-github-oidc/plan-trust.json \
+  --profile mds-devsecops-lab</code></pre>
+<p>I updated the role's trust policy to match the eligible GitHub identity context.</p>
+<pre class="story-code"><code>aws iam update-assume-role-policy \
+  --role-name project-3-terraform-apply-role \
+  --policy-document file://iam/terraform-github-oidc/apply-trust.json \
+  --profile mds-devsecops-lab</code></pre>
+<p>I checked the role's ARN or trust configuration after updating it.</p>
+<pre class="story-code"><code>aws iam get-role \
+  --role-name project-3-terraform-plan-role \
+  --query 'Role.AssumeRolePolicyDocument' \
+  --output json \
+  --profile mds-devsecops-lab</code></pre>
+<p>I checked the role's ARN or trust configuration after updating it.</p>
+<pre class="story-code"><code>aws iam get-role \
+  --role-name project-3-terraform-apply-role \
+  --query 'Role.AssumeRolePolicyDocument' \
+  --output json \
+  --profile mds-devsecops-lab</code></pre>
+<p>I read the live role policy back so I could compare it with the reviewed JSON file.</p>
+<pre class="story-code"><code>aws iam get-role-policy \
+  --role-name project-3-terraform-apply-role \
+  --policy-name project-3-terraform-apply-policy \
+  --profile mds-devsecops-lab \
+  --query PolicyDocument \
+  --output json</code></pre>
+<p>For this repository the subjects include <code>DelaneKay@YOUR_GITHUB_OWNER_ID</code> and <code>project-3-secure-cicd-pipeline@YOUR_GITHUB_REPOSITORY_ID</code>; a reader must use their own actual token subject. The role's aggregate inline-policy quota was also reached. I reduced redundant statements; counting formatted file bytes alone had incorrectly suggested a policy was too large. The final check counted JSON characters excluding formatting whitespace. I did not split inline policies and pretend that bypassed their aggregate quota.</p>
+<h3 id="walkthrough-35">35. Challenge: state lock, existing database and stale saved plans</h3>
+<p>After authorization was corrected, I still had to distinguish failed AWS calls from problems with Terraform's state and saved plans.</p>
+<p>Unlocking abandoned state and importing an existing database were exceptional state-recovery operations. After verifying ownership and reconciling state, I returned to automated plan and apply; I did not disable locking.</p>
+<p>An S3 412 indicated an existing lock, not a permission denial. I checked for another live apply before unlocking the specific abandoned database operation. The following is the historical recovery command with its original lock ID; I never run it without establishing that the owning operation has ended.</p>
+<pre class="story-code"><code>cd ~/projects/project-3-secure-cicd-pipeline</code></pre>
+<p>I selected the IAM-user profile and the lab region for this shell. The explicit profile on recovery commands remains separate from these defaults.</p>
+<pre class="story-code"><code>export AWS_PROFILE=mds-devsecops-lab</code></pre>
+<p>I initialized this Terraform root with its configured provider and backend before validation or state recovery.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/database init -input=false \
+  -backend-config=&quot;bucket=project-3-tfstate-YOUR_ACCOUNT_ID-us-east-1&quot; \
+  -backend-config=&quot;key=project-3/database/terraform.tfstate&quot; \
+  -backend-config=&quot;region=us-east-1&quot; \
+  -backend-config=&quot;use_lockfile=true&quot;</code></pre>
+<p>Only after confirming the owning operation had ended, I released this specific abandoned state lock. The historical lock ID is not a value to reuse for another incident.</p>
+<pre class="story-code"><code>terraform -chdir=terraform/database force-unlock -force \
+  e9ee033d-2216-4d43-80f9-90caa17e5152</code></pre>
+<p>A separate failure said the database subnet group already existed. I checked the real database and subnet group, then used the dedicated import workflow to put existing resources into the intended state. After a partial apply or import changed state, the saved plan was stale; I generated a new plan through a fresh deployment run and reviewed it again.</p>
+<h3 id="walkthrough-36">36. Challenge: diagnose startup and permission failures without mutable repair</h3>
+<p>State recovery returned control to the deployment workflow; service failures then required a different kind of investigation.</p>
+<p>I stopped at diagnosis on the deployed host. Even where a live permission change might have been quicker, the lasting fix went into Packer and I replaced the instance so the next deployment did not depend on an undocumented repair.</p>
+<p>I distinguished a running EC2 instance from a healthy service. The useful diagnostics were service status/journal, HTTP checks and file-path execution permissions under the service account. The checks below exposed the CLI executable-path/traversal problem, which I corrected in the image source. I also learned that SSM shell commands are not guaranteed to use Bash: <code>set -o pipefail</code> failed under <code>/bin/sh</code>.</p>
+<pre class="story-code"><code>SONAR_DIAG_CMD=$(aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=[&quot;systemctl status sonarqube.service --no-pager --full || true&quot;,&quot;journalctl -u sonarqube.service -n 100 --no-pager || true&quot;,&quot;sudo -u sonarqube test -r /opt/sonarqube/logs/sonar.log &amp;&amp; tail -n 80 /opt/sonarqube/logs/sonar.log || true&quot;,&quot;sudo -u sonarqube test -r /opt/sonarqube/logs/web.log &amp;&amp; tail -n 80 /opt/sonarqube/logs/web.log || true&quot;,&quot;sudo -u sonarqube test -r /opt/sonarqube/logs/es.log &amp;&amp; tail -n 80 /opt/sonarqube/logs/es.log || true&quot;]' \
+  --query 'Command.CommandId' \
+  --output text)
+
+aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id &quot;$SONAR_DIAG_CMD&quot; \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>I submitted the read-only diagnostic and retrieved its result in this block, keeping the command ID tied to the intended instance. I used the output to decide what to fix in the image source.</p>
+<pre class="story-code"><code>cat &gt; /tmp/project-3-sonar-cli-diagnostic.json &lt;&lt;'JSON'
+{
+  &quot;commands&quot;: [
+    &quot;for p in /usr/local/aws-cli/v2/current/bin/aws /usr/local/bin/aws /usr/bin/aws; do if [ -e \&quot;$p\&quot; ] || [ -L \&quot;$p\&quot; ]; then ls -l \&quot;$p\&quot;; readlink -f \&quot;$p\&quot; || true; namei -l \&quot;$p\&quot; || true; if sudo -u sonarqube test -x \&quot;$p\&quot;; then echo \&quot;sonarqube_can_execute=$p\&quot;; else echo \&quot;sonarqube_cannot_execute=$p\&quot;; fi; else echo \&quot;missing=$p\&quot;; fi; done&quot;,
+    &quot;sudo -u sonarqube /usr/local/bin/aws --version 2&gt;&amp;1 || true&quot;,
+    &quot;ls -ld /usr/local/aws-cli /usr/local/aws-cli/v2 /usr/local/aws-cli/v2/current /usr/local/bin 2&gt;&amp;1 || true&quot;
+  ]
+}
+JSON
+
+COMMAND_ID=$(aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters file:///tmp/project-3-sonar-cli-diagnostic.json \
+  --query 'Command.CommandId' \
+  --output text)
+
+echo &quot;$COMMAND_ID&quot;</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id COMMAND_ID \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>A shell diagnostic ending in success can hide an earlier failed <code>curl</code> if a later command succeeds. I inspected both the returned status and stdout/stderr. I required <code>UP</code> from SonarQube's API after replacement; merely seeing systemd <code>activating</code> was not enough.</p>
+<h3 id="walkthrough-37">37. Challenge: delivery failure is not a clean scan</h3>
+<p>The final troubleshooting check was the reporting path: a healthy analysis service did not by itself prove that summaries had been exported and delivered.</p>
+<p>I applied the same rule to reporting failures: correct software permissions in Packer or reporting/IAM logic in version control, then rebuild or rerun. I did not keep an ad hoc change on the deployed runner as the solution.</p>
+<p>SonarQube analysis succeeded but export failed when <code>actions-runner</code> could not execute AWS CLI. After the image permission fix, CloudWatch delivered its event. SNS still needed a confirmed subscription before email could arrive. I verified these stages separately instead of treating a missing email as proof of zero issues.</p>
+<pre class="story-code"><code>gh run download 41656129319 \
+  --name sonarqube-results \
+  --dir reports/sonarqube-41656129319</code></pre>
+<p>I read the saved file back to confirm its contents before continuing.</p>
+<pre class="story-code"><code>cat reports/sonarqube-41656129319/summary.json</code></pre>
+<p>I submitted the read-only SSM check and kept its returned command ID so the result could be retrieved for the same instance.</p>
+<pre class="story-code"><code>COMMAND_ID=$(aws ssm send-command \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --instance-ids i-REPLACE_WITH_YOUR_ID \
+  --document-name AWS-RunShellScript \
+  --parameters '{&quot;commands&quot;:[&quot;runuser -u actions-runner -- /usr/local/bin/aws --version&quot;,&quot;runuser -u actions-runner -- /usr/local/bin/aws sts get-caller-identity --region us-east-1 --query Arn --output text&quot;]}' \
+  --query 'Command.CommandId' \
+  --output text) &amp;&amp; printf '%s\n' &quot;$COMMAND_ID&quot;</code></pre>
+<p>I read the result of that SSM command, including stdout and stderr, instead of assuming submission meant success.</p>
+<pre class="story-code"><code>aws ssm get-command-invocation \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --command-id 9db1245b-815a-4a22-96b7-49db6c766f4a \
+  --instance-id i-REPLACE_WITH_YOUR_ID \
+  --query '{Status:Status,Output:StandardOutputContent,Errors:StandardErrorContent}' \
+  --output json</code></pre>
+<p>I checked the SNS subscriptions because publishing a summary cannot deliver an email without a confirmed subscriber.</p>
+<pre class="story-code"><code>aws sns list-subscriptions-by-topic \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --topic-arn arn:aws:sns:us-east-1:YOUR_ACCOUNT_ID:project-3-secure-cicd-pipeline-scan-findings \
+  --query 'Subscriptions[].{Protocol:Protocol,Status:SubscriptionArn}' \
+  --output table</code></pre>
+<p>I listed the scan-summary streams to verify that the reporting path had created the expected records.</p>
+<pre class="story-code"><code>aws logs describe-log-streams \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --log-group-name /project-3/pipeline/scans \
+  --log-stream-name-prefix sonarqube-41671030481 \
+  --query 'logStreams[].{Stream:logStreamName,LastEvent:lastEventTimestamp}' \
+  --output table</code></pre>
+<p>I checked the SNS subscriptions because publishing a summary cannot deliver an email without a confirmed subscriber.</p>
+<pre class="story-code"><code>aws sns list-subscriptions-by-topic \
+  --profile mds-devsecops-lab \
+  --region us-east-1 \
+  --topic-arn arn:aws:sns:us-east-1:YOUR_ACCOUNT_ID:project-3-secure-cicd-pipeline-scan-findings \
+  --output json --no-cli-pager</code></pre>
+<p>I use three distinct outcomes: a completed scan with no findings, a completed scan with findings, and execution/reporting failure. Findings do not block deployment in this lab. A tool that cannot run, parse its report or deliver required reporting is an operational failure and remains visible. I tested the separate workflows first so I could identify these failures before combining them.</p></div></div></section>
 </main><footer class="story-wrap story-footer">
       <span>Project 03 of 11 · Secure CI/CD on AWS</span>
       <span>

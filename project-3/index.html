@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07111f" />
+    <link rel="canonical" href="https://delanekay.github.io/project-3/" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png?v=1" />
+    <meta name="description" content="My Project 3 journey building an immutable AWS infrastructure and secure CI/CD pipeline for OWASP Juice Shop." />
+    <meta property="og:title" content="Project 3 Secure CI/CD on AWS | Kudakwashe Delan Sibanda" />
+    <meta property="og:description" content="An AWS lab combining Packer, Terraform, GitHub Actions and application security scanning." />
+    <meta property="og:image" content="https://delanekay.github.io/assets/project-art/03-secure-cicd-pipeline.png" />
+    <title>Project 3 Secure CI/CD on AWS | Kudakwashe Delan Sibanda</title>
+    <link rel="stylesheet" href="../assets/styles.css?v=20261020-3" />
+    <style>
+      :root { --story-width: min(1120px, calc(100vw - 44px)); }
+      html { scroll-padding-top: 92px; }
+      body { font-size: 1rem; }
+      .story-nav { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(18px); }
+      .story-nav-inner { width: var(--story-width); min-height: 72px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+      .story-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .02em; }
+      .story-brand-mark { display: grid; width: 36px; aspect-ratio: 1; place-items: center; overflow: hidden; border-radius: 0; background: #07111f; }
+      .story-brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+      .story-nav-links { display: flex; align-items: center; gap: 18px; color: var(--muted-strong); font-size: .9rem; }
+      .story-nav-links a:hover { color: var(--accent); }
+      .story-wrap { width: var(--story-width); margin: auto; }
+      .story-hero { padding: clamp(62px, 9vw, 112px) 0 64px; }
+      .story-kicker, .story-index { color: var(--accent); font: 800 .78rem ui-monospace, "Cascadia Code", monospace; letter-spacing: .12em; text-transform: uppercase; }
+      .story-hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); align-items: center; gap: clamp(32px, 6vw, 76px); }
+      .story-hero h1 { max-width: 760px; margin: 20px 0 22px; font-size: clamp(2.7rem, 6vw, 5.3rem); line-height: .98; letter-spacing: -.065em; }
+      .story-hero h1 span { color: transparent; background: linear-gradient(115deg, var(--accent), #ffd089 48%, var(--cyan)); background-clip: text; }
+      .story-lede { max-width: 680px; color: var(--muted-strong); font-size: clamp(1.05rem, 1.8vw, 1.22rem); line-height: 1.75; }
+      .story-hero-art { position: relative; overflow: hidden; min-height: 285px; aspect-ratio: 1.5; border: 1px solid var(--line-strong); border-radius: 24px; box-shadow: var(--shadow); background: var(--bg-soft); }
+      .story-hero-art::after { position: absolute; inset: 50% 0 0; content: ""; background: linear-gradient(transparent, rgba(7,17,31,.62)); pointer-events: none; }
+      .story-hero-art img { width: 100%; height: 100%; min-height: 285px; object-fit: cover; }
+      .story-hero-art figcaption { position: absolute; z-index: 1; right: 18px; bottom: 15px; left: 18px; color: #d7e6f4; font-size: .77rem; }
+      .story-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .story-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 54px; }
+      .story-summary article { min-height: 112px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+      .story-summary strong { display: block; margin-bottom: 8px; color: var(--accent); font: 800 .76rem ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+      .story-summary span { color: var(--muted-strong); font-size: .98rem; line-height: 1.5; }
+      .story-section { padding: clamp(56px, 8vw, 96px) 0; border-top: 1px solid var(--line); }
+      .story-section-head { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; margin-bottom: 30px; }
+      .story-section h2 { max-width: 780px; font-size: clamp(1.9rem, 3.5vw, 3.1rem); line-height: 1.05; letter-spacing: -.045em; }
+      .story-section h3 { margin-bottom: 12px; font-size: 1.22rem; }
+      .story-prose { max-width: 850px; color: var(--muted-strong); font-size: 1.04rem; line-height: 1.82; }
+      .story-prose + .story-prose { margin-top: 16px; }
+      .story-prose strong { color: var(--text); }
+      .story-grid-two { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
+      .story-panel { padding: clamp(20px, 3vw, 30px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+      .story-panel { min-width: 0; }
+      .story-panel code { overflow-wrap: anywhere; }
+      .story-panel p { color: var(--muted-strong); font-size: 1rem; line-height: 1.75; }
+      .story-panel p + p { margin-top: 12px; }
+      .story-chip-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+      .story-chip-list span { padding: 7px 11px; color: var(--cyan); border: 1px solid color-mix(in srgb, var(--cyan) 32%, var(--line)); border-radius: 999px; font: 700 .75rem ui-monospace, monospace; }
+      .story-topology { overflow: hidden; margin-top: 26px; border: 1px solid var(--line); border-radius: 18px; background: var(--bg-soft); }
+      .story-topology img { width: 100%; height: auto; }
+      .story-topology figcaption { padding: 13px 17px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+      .story-code { overflow-x: auto; margin: 16px 0 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #081321; color: #d8e6f5; font: .88rem/1.7 ui-monospace, "Cascadia Code", monospace; }
+      .story-code code, .story-panel .story-code code { padding: 0; color: inherit; border-radius: 0; background: transparent; font: inherit; }
+      html[data-theme="dark"] .story-code { border-color: #d6dee8; background: #f1f5f9; color: #111827; }
+      html[data-theme="dark"] code { color: #111827; background: #e2e8f0; }
+      html[data-theme="dark"] .story-code code { color: inherit; background: transparent; }
+      html[data-theme="dark"] .story-chip-list span { color: #111827; border-color: #cbd5e1; background: #f1f5f9; }
+      html[data-theme="dark"] .story-chip-list span a { color: inherit; }
+      .story-table-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 14px; }
+      .story-table { width: 100%; border-collapse: collapse; color: var(--muted-strong); font-size: .92rem; line-height: 1.6; }
+      .story-table th, .story-table td { padding: 13px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+      .story-table th { color: var(--text); background: var(--bg-soft); font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+      .story-table tr:last-child td { border-bottom: 0; }
+      .story-table code { color: var(--cyan); }
+      html[data-theme="dark"] .story-table-wrap { border-color: #d6dee8; background: #f8fafc; }
+      html[data-theme="dark"] .story-table { color: #111827; }
+      html[data-theme="dark"] .story-table th { color: #ffffff; border-color: #0b1728; background: #07111f; }
+      html[data-theme="dark"] .story-table td { border-color: #cbd5e1; }
+      html[data-theme="dark"] .story-table code { color: #f8fafc; background: #101f33; }
+      html[data-theme="light"] .story-table-wrap { border-color: #07111f; background: #0b1728; }
+      html[data-theme="light"] .story-table { color: #f8fafc; }
+      html[data-theme="light"] .story-table th { color: #ffffff; border-color: #475569; background: #020617; }
+      html[data-theme="light"] .story-table td { border-color: #334155; }
+      html[data-theme="light"] .story-table code { color: #111827; background: #f1f5f9; }
+
+      .story-note { margin-top: 15px; padding: 14px 17px; border-left: 3px solid var(--cyan); border-radius: 0 10px 10px 0; background: var(--bg-soft); color: var(--muted-strong); font-size: .92rem; line-height: 1.65; }
+      .story-steps { display: grid; gap: 14px; counter-reset: step; }
+      .story-step { display: grid; grid-template-columns: 54px 1fr; gap: 16px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); counter-increment: step; }
+      .story-step::before { display: grid; width: 42px; height: 42px; place-items: center; content: "0" counter(step); color: var(--accent); border: 1px solid var(--line-strong); border-radius: 12px; font: 800 .8rem ui-monospace, monospace; }
+      .story-step h3 { margin: 1px 0 6px; font-size: 1.08rem; }
+      .story-step p { color: var(--muted-strong); font-size: .97rem; line-height: 1.7; }
+      .story-observation { display: grid; grid-template-columns: 190px 1fr; gap: 16px; padding: 17px 0; border-bottom: 1px solid var(--line); }
+      .story-observation:last-child { border-bottom: 0; }
+      .story-observation strong { color: var(--text); }
+      .story-observation p { color: var(--muted-strong); line-height: 1.65; }
+      .story-observation code, .story-prose code, .story-panel code { padding: .12em .35em; color: var(--cyan); border-radius: 5px; background: var(--bg-soft); font: .9em ui-monospace, monospace; }
+      .story-code-label { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; color: var(--muted); font: 700 .74rem ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; }
+      .story-principles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-top: 22px; }
+      .story-principles article { padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+      .story-principles h3 { margin-bottom: 8px; color: var(--accent); font-size: 1rem; }
+      .story-principles p { color: var(--muted-strong); font-size: .9rem; line-height: 1.65; }
+      .story-proof { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; margin-top: 26px; }
+      .story-proof a { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); transition: transform 180ms ease, border-color 180ms ease; }
+      .story-proof a:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+      .story-proof img { width: 100%; aspect-ratio: 16/9; object-fit: cover; object-position: top; background: var(--bg-soft); }
+      .story-proof span { display: block; padding: 13px 16px 15px; color: var(--muted-strong); font-size: .91rem; }
+      .story-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 30px 0 50px; color: var(--muted); font-size: .9rem; }
+      .story-footer a { color: var(--accent); }
+      body *, body *::before, body *::after { border-radius: 0 !important; }
+      @media (max-width: 850px) {
+        .story-hero-grid { grid-template-columns: 1fr; }
+        .story-hero-art { max-width: 660px; }
+        .story-section-head { grid-template-columns: 1fr; gap: 12px; }
+        .story-principles { grid-template-columns: repeat(2,1fr); }
+         .story-nav-inner { flex-wrap: wrap; padding: 10px 0; }
+        .story-nav-links { flex-wrap: wrap; justify-content: flex-end; gap: 10px; font-size: .8rem; }
+      }
+      @media (max-width: 600px) {
+        :root { --story-width: calc(100vw - 30px); }
+        .story-nav-inner { min-height: 62px; }
+        .story-nav-links a:not(.story-home) { display: none; }
+        .story-summary, .story-grid-two, .story-proof, .story-principles { grid-template-columns: 1fr; }
+        .story-hero { padding-top: 54px; }
+        .story-hero h1 { font-size: clamp(2.45rem, 12vw, 3.6rem); }
+        .story-hero-art, .story-hero-art img { min-height: 220px; }
+        .story-observation { grid-template-columns: 1fr; gap: 5px; }
+        .story-step { grid-template-columns: 42px 1fr; gap: 12px; }
+        .story-step::before { width: 36px; height: 36px; }
+      }
+    
+      /* Use the accent only for Meridian cards in multi-column sections. */
+      @media (min-width: 601px) {
+        .story-summary > article,
+        .story-grid-two > .story-panel,
+        .story-proof > a,
+        .story-principles > article { position: relative; }
+        .story-summary > article::before,
+        .story-grid-two > .story-panel::before,
+        .story-proof > a::before,
+        .story-principles > article::before {
+          position: absolute;
+          z-index: 2;
+          inset: 0 auto 0 0;
+          width: 3px;
+          content: "";
+          background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 36%, transparent) 54%, transparent 100%);
+          pointer-events: none;
+        }
+      }
+</style>
+  </head>
+  <body>
+<header class="story-nav"><div class="story-nav-inner"><a class="story-brand" href="/#projects"><span class="story-brand-mark"><img src="/assets/favicon.png?v=1" alt="" /></span><span>SECURE CI/CD ON AWS / 03</span></a><nav class="story-nav-links" aria-label="Case study sections"><a href="#lab">The lab</a><a href="#build">Image builds</a><a href="#pipeline">Pipeline</a><a href="#challenges">Challenges</a><a href="#evidence">Evidence</a><a class="story-home" href="/#projects">Portfolio ↗</a><button class="icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"><span class="theme-icon" aria-hidden="true">◐</span></button></nav></div></header>
+<main>
+<section class="story-hero"><div class="story-wrap"><div class="story-hero-grid"><div><p class="story-kicker">PROJECT 03 / AWS DEVSECOPS</p><h1>Build once.<br /><span>Scan and deploy with confidence.</span></h1><p class="story-lede">I built an AWS lab around OWASP Juice Shop to connect immutable infrastructure, security scanning and reviewed deployments in one repeatable pipeline.</p><div class="story-actions"><a class="button button-primary" href="#lab">Explore the project ↓</a><a class="button button-outline" href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline" target="_blank" rel="noopener noreferrer">Open project repository ↗</a></div></div><figure class="story-hero-art"><img src="/assets/project-art/03-secure-cicd-pipeline.png" width="1672" height="940" alt="Illustration of a secure CI/CD pipeline" /><figcaption>Project artwork for the AWS secure delivery lab</figcaption></figure></div><div class="story-summary"><article><strong>Challenge</strong><span>Bring infrastructure and application security checks into a repeatable deployment process.</span></article><article><strong>Approach</strong><span>Packer images, layered Terraform, GitHub Actions and an AWS scanner runner.</span></article><article><strong>Outcome</strong><span>Four scan types, reviewed deployments and a successful combined pipeline.</span></article></div></div></section>
+<section class="story-section" id="lab"><div class="story-wrap"><div class="story-section-head"><p class="story-index">01 / THE LAB</p><h2>I built a controlled AWS environment around an intentionally vulnerable application.</h2></div><div class="story-prose"><p>I used OWASP Juice Shop as the target and deployed it alongside a self-hosted GitHub Actions scanner runner, a private SonarQube server and an encrypted PostgreSQL database. The scanner and application were in a public subnet with restricted security groups; SonarQube and RDS were in private subnets.</p><p>I used Systems Manager for administration and diagnostics without inbound SSH. VPC endpoints provided private access to selected AWS services. GitHub-hosted jobs used OIDC roles for Terraform, while the AWS runner handled the security scans.</p></div><figure class="story-topology"><img src="https://raw.githubusercontent.com/DelaneKay/project-3-secure-cicd-pipeline/master/docs/images/project-3-lab-architecture.svg" alt="Project 3 AWS lab architecture and CI/CD flow" /><figcaption>The lab’s build, deployment, scanning and reporting paths. See the repository walkthrough for the trust boundaries and configuration.</figcaption></figure></div></section>
+<section class="story-section" id="build"><div class="story-wrap"><div class="story-section-head"><p class="story-index">02 / IMMUTABLE BUILDS</p><h2>I prepared the hosts before deployment and replaced them when a fix was needed.</h2></div><div class="story-grid-two"><article class="story-panel"><h3>Three Packer images</h3><p>I built Ubuntu 24.04 AMIs for Juice Shop, SonarQube and the scanner runner. I installed software, service definitions and hardening during the image build. A temporary builder used an SSH communicator through Systems Manager without an inbound SSH rule.</p></article><article class="story-panel"><h3>Terraform in layers</h3><p>I separated network, database, observability, compute and SonarQube into independent roots with separate state. I first tested layers manually, then moved routine plans and applies into GitHub Actions with OIDC, state locking and approval of saved plans.</p></article></div><p class="story-prose" style="margin-top:24px">When startup or tool permissions failed, I used read-only diagnostics, corrected the image source, rebuilt the AMI and replaced the instance. Packer supports this approach; it does not by itself prevent a running host from being changed.</p></div></section>
+<section class="story-section" id="pipeline"><div class="story-wrap"><div class="story-section-head"><p class="story-index">03 / THE PIPELINE</p><h2>I tested each workflow on its own, then connected them.</h2></div><div class="story-steps"><article class="story-step"><div><h3>Gitleaks · secret scanning</h3><p>I scanned repository history and investigated a public-key fingerprint that was reported as a false positive.</p></div></article><article class="story-step"><div><h3>SonarQube · SAST</h3><p>I submitted the matching Juice Shop source to the private SonarQube server and exported an aggregate summary with a separate reporting credential.</p></div></article><article class="story-step"><div><h3>Dependency-Check · SCA</h3><p>I scanned packaged dependencies for known vulnerabilities and recorded limited coverage: the release lacked a top-level lockfile and npm audit was unavailable.</p></div></article><article class="story-step"><div><h3>Terraform · reviewed deployment</h3><p>Plans were saved and reviewed before apply. Network ran first; dependent layers followed, with independent work in parallel where possible.</p></div></article><article class="story-step"><div><h3>OWASP ZAP · DAST</h3><p>After deployment, ZAP ran a bounded unauthenticated spider and active scan against the approved Juice Shop target. I retained the coverage limitation with its results.</p></div></article></div><div class="story-note">The scanner runner and SonarQube had to be bootstrapped before the combined workflow’s pre-deployment scans. I kept the standalone workflows for testing and investigation.</div></div></section>
+<section class="story-section" id="challenges"><div class="story-wrap"><div class="story-section-head"><p class="story-index">04 / TROUBLESHOOTING</p><h2>The failures helped me strengthen the build and the reporting.</h2></div><div class="story-grid-two"><article class="story-panel"><h3>SonarQube startup</h3><p>The service did not become ready because its runtime user could not execute the installed AWS CLI. I inspected permissions, corrected the image build, rebuilt the AMI and verified the replacement returned an UP status.</p></article><article class="story-panel"><h3>Runner capacity and tools</h3><p>A scan exhausted the original runner’s memory. I changed its instance size and replaced it through Terraform. Missing Node.js and npm were added to a rebuilt runner image before the dependency workflow was retested.</p></article><article class="story-panel"><h3>Terraform state and IAM</h3><p>I investigated stale saved plans, a state lock and an existing database after backend changes. Network recreation also changed VPC and subnet IDs used by the separately bootstrapped apply-role policy; that reconciliation remained a manual gap.</p></article><article class="story-panel"><h3>Scan execution versus findings</h3><p>A Dependency-Check run produced reports but ended with an execution error. I treated that as a failure rather than a clean result, investigated it and retained the eventual limited-coverage notice.</p></article></div></div></section>
+<section class="story-section" id="evidence"><div class="story-wrap"><div class="story-section-head"><p class="story-index">05 / OUTCOME &amp; EVIDENCE</p><h2>A combined run completed; its findings and limitations stayed visible.</h2></div><div class="story-prose"><p>The combined workflow completed with the separate secret, SAST, SCA, reviewed Terraform and DAST stages. GitHub Actions retained scan artifacts, while CloudWatch and SNS received aggregate summaries rather than an email for each finding.</p><p>Juice Shop is deliberately vulnerable, so findings remained report-only. A successful job means the workflow completed; it does not mean the application has no vulnerabilities. The lab demonstrates security controls and automation, not a claim of production readiness.</p></div><div class="story-chip-list"><span><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline/actions/runs/41846334576" target="_blank" rel="noopener noreferrer">Combined run ↗</a></span><span><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline" target="_blank" rel="noopener noreferrer">Full walkthrough and source ↗</a></span></div></div></section>
+</main><footer class="story-wrap story-footer">
+      <span>Project 03 of 11 · Secure CI/CD on AWS</span>
+      <span>
+        <a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline" target="_blank" rel="noopener noreferrer">Full project repository ↗</a>
+        &nbsp;·&nbsp; <a href="/#projects">Back to portfolio ↑</a>
+      </span>
+    </footer>
+    <script>
+      const themeRoot = document.documentElement;
+      const themeButton = document.querySelector(".theme-toggle");
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+
+      function applyTheme(theme) {
+        themeRoot.dataset.theme = theme;
+        themeButton.setAttribute(
+          "aria-label",
+          theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
+        );
+        themeColor.setAttribute("content", theme === "dark" ? "#07111f" : "#f1f5f8");
+      }
+
+      const savedTheme = localStorage.getItem("portfolio-theme");
+      const systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
+      applyTheme(savedTheme || systemTheme);
+
+      themeButton.addEventListener("click", () => {
+        const nextTheme = themeRoot.dataset.theme === "dark" ? "light" : "dark";
+        applyTheme(nextTheme);
+        localStorage.setItem("portfolio-theme", nextTheme);
+      });
+    </script>
+  </body>
+</html>

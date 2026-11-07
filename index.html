@@ -526,16 +526,16 @@
               </article>
               
               <article class="project-card roadmap-card reveal" data-delay="120">
-                <div class="project-card-top"><span class="project-status">PLANNED</span><span>03 / 11</span></div>
+                <div class="project-card-top"><span class="project-status">COMPLETED</span><span>03 / 11</span></div>
                 <div class="roadmap-project-art" role="img" aria-label="Secure CI/CD pipeline with build, test, scan and deploy stages"><img class="roadmap-art-image" src="assets/project-art/03-secure-cicd-pipeline.png?v=1" alt="" loading="lazy" decoding="async" width="1672" height="940" /></div>
                 <div class="project-card-body roadmap-card-body">
                   <p class="project-type">SECURE DELIVERY / CI/CD</p>
                   <h3>Enterprise Secure CI/CD Pipeline</h3>
                   <div class="roadmap-implementation-grid">
-                    <div><h4>Local implementation</h4><p>Automate SAST, DAST, SCA, secrets scanning, security gates, and artifact signing.</p></div>
-                    <div><h4>AWS implementation</h4><p>Use GitHub Actions with AWS OIDC, ECR, and ECS for a secure deployment workflow.</p></div>
+                    <div><h4>AWS implementation</h4><p>I built immutable Ubuntu images with Packer and deployed a layered AWS lab with Terraform. GitHub Actions brought Gitleaks, SonarQube, Dependency-Check and ZAP into a reviewed pipeline for OWASP Juice Shop.</p></div>
                   </div>
-                  <div class="roadmap-tools"><strong>Tools</strong><p>GitHub Actions, SonarQube, Snyk, Semgrep, ZAP, Gitleaks, Trivy, Hadolint, Sigstore/Cosign, OPA/Conftest</p></div>
+                  <div class="roadmap-tools"><strong>Tools</strong><p>AWS, Packer, Terraform, GitHub Actions, Gitleaks, SonarQube, OWASP Dependency-Check, OWASP ZAP, CloudWatch, SNS</p></div>
+                  <div class="roadmap-links"><a href="/project-3/">Read the Project 3 case study ↗</a><a href="https://github.com/DelaneKay/project-3-secure-cicd-pipeline" target="_blank" rel="noopener noreferrer">View project repository ↗</a></div>
                 </div>
               </article>
             </div>
